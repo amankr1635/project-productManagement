@@ -1,6 +1,6 @@
 //============= *validation via Regex* ================
 
-const isValidateEmail = function (email) {
+const isValidEmail = function (email) {
   const re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   return re.test(email);
 };
@@ -37,7 +37,7 @@ const isValidString = function (input) {
 };
 
 module.exports = {
-  isValidateEmail,
+  isValidEmail,
   passwordVal,
   isValidName,
   isValidNo,
