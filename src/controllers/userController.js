@@ -13,7 +13,6 @@ const user = async function (req, res) {
         for (let i of dataArr) {
             if (!keys.includes(i)) return res.status(400).send({ status: false, message: `${i} field is mandatory ` })
         }
-
         data.fname = data.fname.trim()
         if (!isValidName(data.fname)) return res.status(400).send({ status: false, message: "fname is Invalid" })
         data.lname = data.lname.trim()
@@ -73,7 +72,6 @@ const user = async function (req, res) {
     }
 }
 
-
 const login = async function (req, res) {
     try {
         let data = req.body
@@ -106,22 +104,20 @@ const login = async function (req, res) {
                 return res.status(400).send({ status: false, message: "Password is wrong" })
             }
         });
-        //  if(userData){
-        //      if(data.password!=userData.password)
-        //      {
-        //          return res.status(401).send({status:false,msg:"incorrect password"})
-        //      }
-        //  }
-
-        //  let token = jwt.sign({userId:userData._id.toString(),emailId:userData.email},"group5californium",{expiresIn:"1h"})
-        //  res.setHeader("x-api-key",token)
-        //  return  res.status(200).send({status:true,msg:"Token is generated",data:userData._id,token})
-
     }
     catch (error) {
         return res.status(500).send({ status: false, error: error.message })
     }
-
-
 }
-module.exports = { user, login }
+
+
+const updateUser = async function(req,res){
+    let data = req.body
+    let userId = req.params.userId
+    let update = await userModel.findByIdAndUpdate(userId,data,{new:true})
+    if(!update) return res.status(400).send({ status: false, message: "User data not found" })
+    return res.status(200).send({ status: true, message: "User profile updated", data: update })
+}
+
+
+module.exports = { user, login , updateUser}
