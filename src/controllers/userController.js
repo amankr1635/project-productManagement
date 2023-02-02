@@ -1,6 +1,7 @@
 const userModel = require('../models/userModel')
 const uploadFile = require('../aws/aws')
 const bcrypt = require('bcrypt')
+const { isValidObjectId, default: mongoose } = require("mongoose");
 const jwt = require('jsonwebtoken')
 const { isValidPin, isValidName, isValidEmail, isValidNo, passwordVal, isValidImage, isValidString } = require('../validations/validation')
 
@@ -124,4 +125,21 @@ const login = async function (req, res) {
 
 
 }
+
+let getUser=async function(req,res)
+{
+
+    let userId=req.params
+    // if(!isValidObjectId(userId))  return res.status(404).send({status:false,message:"please enter a valid userID"})
+
+    let user=await userModel.findOne({_id:userId,isDeleted:false})
+    if(!user) return res.status(404).send({status:false,message:"user not found"})
+
+
+    return res.status(200).send({status:true,message: "User profile details",user})
+
+
+
+}
+
 module.exports = { user, login }
