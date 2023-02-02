@@ -21,6 +21,13 @@ const user = async function (req, res) {
         if (!isValidEmail(data.email)) return res.status(400).send({ status: false, message: "email is Invalid" })
         if (!isValidImage(data.files[0].originalname)) return res.status(400).send({ status: false, message: "Image format is Invalid please provide .jpg or .png or .jpeg format" })
         if (!isValidNo(data.phone)) return res.status(400).send({ status: false, message: "phone number is Invalid" })
+        let userExist = await userModel.find({$or:[{email:data.email},{phone:data.phone}]})
+        if(userExist.length>=1) {
+            if(data.email == userExist[0].email){
+                return res.status(400).send({ status: false, message: "email is already exist" })
+            }
+            else return res.status(400).send({ status: false, message: "phone is already exist" })
+        }
         data.password = data.password.trim()
         if (!passwordVal(data.password)) return res.status(400).send({ status: false, message: "Password must be at least 1 lowercase, at least 1 uppercase,contain at least 1 numeric character , at least one special character, range between 8-15" })
 
@@ -83,7 +90,7 @@ const login = async function (req, res) {
         if (!isValidEmail(email)) return res.status(400).send({ status: false, message: "Invalid email" })
 
         if (!password) return res.status(400).send({ status: false, msg: "please provide password" });
-        if(!isValidString(password)) return res.status(400).send({ status: false, msg: "please provide valid password in string" });
+        if (!isValidString(password)) return res.status(400).send({ status: false, msg: "please provide valid password in string" });
         password = password.trim()
 
         if (Object.keys(data).length > 2) return res.status(400).send({ status: false, msg: "only provide email and password field" })
@@ -111,26 +118,25 @@ const login = async function (req, res) {
 }
 
 
-const getUser=async function(req,res)
-{
+const getUser = async function (req, res) {
 
-    let userId=req.params
+    let userId = req.params
     // if(!isValidObjectId(userId))  return res.status(404).send({status:false,message:"please enter a valid userID"})
-    
-    let user=await userModel.findOne({_id:userId,isDeleted:false})
-    if(!user) return res.status(404).send({status:false,message:"user not found"})
-    
-    
-    return res.status(200).send({status:true,message: "User profile details",user})
-        
+
+    let user = await userModel.findOne({ _id: userId, isDeleted: false })
+    if (!user) return res.status(404).send({ status: false, message: "user not found" })
+
+
+    return res.status(200).send({ status: true, message: "User profile details", user })
+
 }
 
-const updateUser = async function(req,res){
+const updateUser = async function (req, res) {
     let data = req.body
     let userId = req.params.userId
-    let update = await userModel.findByIdAndUpdate(userId,data,{new:true})
-    if(!update) return res.status(400).send({ status: false, message: "User data not found" })
+    let update = await userModel.findByIdAndUpdate(userId, data, { new: true })
+    if (!update) return res.status(400).send({ status: false, message: "User data not found" })
     return res.status(200).send({ status: true, message: "User profile updated", data: update })
 }
 
-module.exports = { user, login , updateUser}
+module.exports = { user, login, getUser, updateUser }
