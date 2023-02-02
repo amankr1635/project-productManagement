@@ -111,6 +111,20 @@ const login = async function (req, res) {
 }
 
 
+const getUser=async function(req,res)
+{
+
+    let userId=req.params
+    // if(!isValidObjectId(userId))  return res.status(404).send({status:false,message:"please enter a valid userID"})
+    
+    let user=await userModel.findOne({_id:userId,isDeleted:false})
+    if(!user) return res.status(404).send({status:false,message:"user not found"})
+    
+    
+    return res.status(200).send({status:true,message: "User profile details",user})
+        
+}
+
 const updateUser = async function(req,res){
     let data = req.body
     let userId = req.params.userId
@@ -118,6 +132,5 @@ const updateUser = async function(req,res){
     if(!update) return res.status(400).send({ status: false, message: "User data not found" })
     return res.status(200).send({ status: true, message: "User profile updated", data: update })
 }
-
 
 module.exports = { user, login , updateUser}
