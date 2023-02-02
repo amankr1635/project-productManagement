@@ -36,6 +36,7 @@ const productSchema = new mongoose.Schema(
     }, // s3 link
     style: String,
     availableSizes: {
+      type: String,
       enum: ["S", "XS", "M", "X", "L", "XXL", "XL"]
     },
     installments: Number,
