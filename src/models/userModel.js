@@ -14,23 +14,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      // valid email
     },
     profileImage: {
       type: String,
       required: true,
-      // s3 link
+ 
     },
     phone: {
       type: String,
       required: true,
       unique: true,
-      //  valid Indian mob.number
     },
     password: {
       type: String,
       requuired: true,
-      // encrypted password length min 8 max -15
     },
     address: {
       shipping: {
@@ -59,9 +56,11 @@ const userSchema = new mongoose.Schema(
         pincode: {
           type: Number,
           required: true,
-        }
-      }
-    }
-  },{ timestamps: true });
+        },
+      },
+    },
+  },
+  { timestamps: true }
+);
 
-  module.exports = mongoose.model("usersdata",userSchema)
+module.exports = mongoose.model("usersdata", userSchema);
