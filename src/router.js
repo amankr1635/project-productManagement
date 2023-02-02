@@ -12,7 +12,7 @@ router.get('/test-me',function(req,res){
 
 router.post("/register",user)
 router.post("/login",login)
-router.get("/user/:userId/profile",getUser)
+router.get("/user/:userId/profile", authentication, getUser)
 router.put("/user/:userId/profile",updateUser)
 
 module.exports = router

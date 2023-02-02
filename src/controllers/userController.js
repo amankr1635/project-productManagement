@@ -20,10 +20,11 @@ const user = async function (req, res) {
         data.email = data.email.trim().toLowerCase()
         if (!isValidEmail(data.email)) return res.status(400).send({ status: false, message: "email is Invalid" })
         if (!isValidImage(data.files[0].originalname)) return res.status(400).send({ status: false, message: "Image format is Invalid please provide .jpg or .png or .jpeg format" })
+        data.phone = data.phone.trim()
         if (!isValidNo(data.phone)) return res.status(400).send({ status: false, message: "phone number is Invalid" })
-        let userExist = await userModel.find({$or:[{email:data.email},{phone:data.phone}]})
-        if(userExist.length>=1) {
-            if(data.email == userExist[0].email){
+        let userExist = await userModel.find({ $or: [{ email: data.email }, { phone: data.phone }] })
+        if (userExist.length >= 1) {
+            if (data.email == userExist[0].email) {
                 return res.status(400).send({ status: false, message: "email is already exist" })
             }
             else return res.status(400).send({ status: false, message: "phone is already exist" })
@@ -120,23 +121,107 @@ const login = async function (req, res) {
 
 const getUser = async function (req, res) {
 
-    let userId = req.params
+    let userId = req.params.userId
     // if(!isValidObjectId(userId))  return res.status(404).send({status:false,message:"please enter a valid userID"})
 
-    let user = await userModel.findOne({ _id: userId, isDeleted: false })
+    let user = await userModel.findOne({ _id: userId })
     if (!user) return res.status(404).send({ status: false, message: "user not found" })
 
 
-    return res.status(200).send({ status: true, message: "User profile details", user })
+    return res.status(200).send({ status: true, message: "User profile details", data: user })
 
 }
 
 const updateUser = async function (req, res) {
-    let data = req.body
-    let userId = req.params.userId
-    let update = await userModel.findByIdAndUpdate(userId, data, { new: true })
-    if (!update) return res.status(400).send({ status: false, message: "User data not found" })
-    return res.status(200).send({ status: true, message: "User profile updated", data: update })
+    try {
+        let data = req.body
+        let userId = req.params.userId
+
+
+        if (data.fname) {
+            data.fname = data.fname.trim()
+            if (!isValidName(data.fname)) return res.status(400).send({ status: false, message: "fname is Invalid" })
+        }
+        if (data.lname) {
+            data.lname = data.lname.trim()
+            if (!isValidName(data.lname)) return res.status(400).send({ status: false, message: "lname is Invalid" })
+        }
+        if (data.email) {
+            data.email = data.email.trim().toLowerCase()
+            if (!isValidEmail(data.email)) return res.status(400).send({ status: false, message: "email is Invalid" })
+        }
+        if (req.files) {
+            data.files = req.files
+            if (!isValidImage(data.files[0].originalname)) return res.status(400).send({ status: false, message: "Image format is Invalid please provide .jpg or .png or .jpeg format" })
+            if (data.files && data.files.length > 0) {
+                let uploadedFileURL = await uploadFile(data.files[0])
+                data.profileImage = uploadedFileURL
+            }
+            else {
+                return res.status(400).send({ msg: "No file found" })
+            }
+        }
+        if (data.phone) {
+            data.phone = data.phone.trim()
+            if (!isValidNo(data.phone)) return res.status(400).send({ status: false, message: "phone number is Invalid" })
+        }
+        if (data.email || data.phone) {
+            let userExist = await userModel.find({ $or: [{ email: data.email }, { phone: data.phone }] })
+            if (userExist.length >= 1) {
+                if (data.email == userExist[0].email) {
+                    return res.status(400).send({ status: false, message: "email is already exist" })
+                }
+                else return res.status(400).send({ status: false, message: "phone is already exist" })
+            }
+        }
+        if (data.password) {
+            data.password = data.password.trim()
+            if (!passwordVal(data.password)) return res.status(400).send({ status: false, message: "Password must be at least 1 lowercase, at least 1 uppercase,contain at least 1 numeric character , at least one special character, range between 8-15" })
+            const saltRounds = data.password.length
+            let hash = await bcrypt.hash(data.password, saltRounds)
+            data.password = hash
+        }
+        if (data.address) {
+            let address = JSON.parse(req.body.address)
+            let findData = await userModel.findById(userId)
+            let address2 = findData.address
+
+            if (address2) {
+                if (address.shipping.street) {
+                    address.shipping.street.trim()
+                    if (address.shipping.street !== "") address2.shipping.street = address.shipping.street
+                }
+                if (address.shipping.city) {
+                    address.shipping.city.trim()
+                    if (address.shipping.city !== "") address2.shipping.city = address.shipping.city
+                }
+                if (address.shipping.pincode) {
+                    if (!isValidPin(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Enter valid pincode in shipping" })
+                    address2.shipping.pincode = address.shipping.pincode
+                }
+                if (address.billing.street) {
+                    address.billing.street.trim()
+                    if (address.billing.street !== "") address2.billing.street = address.billing.street
+                }
+                if (address.billing.city) {
+                    address.billing.city.trim()
+                    if (address.billing.city !== "") address2.billing.city = address.billing.city
+                }
+                if (address.billing.pincode) {
+                    // address.billing.pincode = address.billing.pincode.toString()
+                    if (!isValidPin(address.billing.pincode)) return res.status(400).send({ status: false, message: "Enter valid pincode in billing" })
+                    address2.billing.pincode = address.billing.pincode
+                }
+            }
+            data.address = address2
+
+        }
+        let update = await userModel.findByIdAndUpdate(userId, data, { new: true })
+        if (!update) return res.status(400).send({ status: false, message: "User data not found" })
+        return res.status(200).send({ status: true, message: "User profile updated", data: update })
+    } catch (error) {
+        return res.status(500).send({ status: false, error: error.message })
+    }
 }
 
 module.exports = { user, login, getUser, updateUser }
