@@ -36,7 +36,7 @@ const product = async function (req, res) {
 }
 
 
-const getProduct = async function (req, res) {
+const getProductQuery = async function (req, res) {
     try {
 
         let data = req.query;
@@ -60,4 +60,4 @@ const getProduct = async function (req, res) {
 
 }
 
-module.exports = { product , getProduct}
+module.exports = { product , getProductQuery}
