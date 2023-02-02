@@ -13,7 +13,6 @@ const user = async function (req, res) {
         for (let i of dataArr) {
             if (!keys.includes(i)) return res.status(400).send({ status: false, message: `${i} field is mandatory ` })
         }
-
         data.fname = data.fname.trim()
         if (!isValidName(data.fname)) return res.status(400).send({ status: false, message: "fname is Invalid" })
         data.lname = data.lname.trim()
@@ -22,6 +21,13 @@ const user = async function (req, res) {
         if (!isValidEmail(data.email)) return res.status(400).send({ status: false, message: "email is Invalid" })
         if (!isValidImage(data.files[0].originalname)) return res.status(400).send({ status: false, message: "Image format is Invalid please provide .jpg or .png or .jpeg format" })
         if (!isValidNo(data.phone)) return res.status(400).send({ status: false, message: "phone number is Invalid" })
+        let userExist = await userModel.find({$or:[{email:data.email},{phone:data.phone}]})
+        if(userExist.length>=1) {
+            if(data.email == userExist[0].email){
+                return res.status(400).send({ status: false, message: "email is already exist" })
+            }
+            else return res.status(400).send({ status: false, message: "phone is already exist" })
+        }
         data.password = data.password.trim()
         if (!passwordVal(data.password)) return res.status(400).send({ status: false, message: "Password must be at least 1 lowercase, at least 1 uppercase,contain at least 1 numeric character , at least one special character, range between 8-15" })
 
@@ -73,7 +79,6 @@ const user = async function (req, res) {
     }
 }
 
-
 const login = async function (req, res) {
     try {
         let data = req.body
@@ -85,7 +90,7 @@ const login = async function (req, res) {
         if (!isValidEmail(email)) return res.status(400).send({ status: false, message: "Invalid email" })
 
         if (!password) return res.status(400).send({ status: false, msg: "please provide password" });
-        if(!isValidString(password)) return res.status(400).send({ status: false, msg: "please provide valid password in string" });
+        if (!isValidString(password)) return res.status(400).send({ status: false, msg: "please provide valid password in string" });
         password = password.trim()
 
         if (Object.keys(data).length > 2) return res.status(400).send({ status: false, msg: "only provide email and password field" })
@@ -106,22 +111,32 @@ const login = async function (req, res) {
                 return res.status(400).send({ status: false, message: "Password is wrong" })
             }
         });
-        //  if(userData){
-        //      if(data.password!=userData.password)
-        //      {
-        //          return res.status(401).send({status:false,msg:"incorrect password"})
-        //      }
-        //  }
-
-        //  let token = jwt.sign({userId:userData._id.toString(),emailId:userData.email},"group5californium",{expiresIn:"1h"})
-        //  res.setHeader("x-api-key",token)
-        //  return  res.status(200).send({status:true,msg:"Token is generated",data:userData._id,token})
-
     }
     catch (error) {
         return res.status(500).send({ status: false, error: error.message })
     }
+}
 
+
+const getUser = async function (req, res) {
+
+    let userId = req.params
+    // if(!isValidObjectId(userId))  return res.status(404).send({status:false,message:"please enter a valid userID"})
+
+    let user = await userModel.findOne({ _id: userId, isDeleted: false })
+    if (!user) return res.status(404).send({ status: false, message: "user not found" })
+
+
+    return res.status(200).send({ status: true, message: "User profile details", user })
 
 }
-module.exports = { user, login }
+
+const updateUser = async function (req, res) {
+    let data = req.body
+    let userId = req.params.userId
+    let update = await userModel.findByIdAndUpdate(userId, data, { new: true })
+    if (!update) return res.status(400).send({ status: false, message: "User data not found" })
+    return res.status(200).send({ status: true, message: "User profile updated", data: update })
+}
+
+module.exports = { user, login, getUser, updateUser }
