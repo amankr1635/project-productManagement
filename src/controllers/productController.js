@@ -163,5 +163,21 @@ const updatProduct = async function (req, res) {
     return res.status(500).send({ status: false, message: error.message });
   }
 };
+const deleteProduct = async function(req,res){
+    try{
+    let params = req.params.productId
+    if(!mongoose.isValidObjectId(params)) return res.status(400).send({status: false, message: "please enter a valid productId"})
+
+    let deletePro = await productModel.findOneAndUpdate({_id:params,isDeleted:false},{isDeleted: true,deletedAt: Date.now() },{new:true})
+    if(!deletePro) return res.status(404).send({status: false, message: "Product not found"})
+
+    return res.status(200).send({status: false , message: "Product is deleted" })
+
+
+    }catch(err){
+        return res.status(400).send({status: false, message: err.message})
+    }
+}
+
 
 module.exports = { product, getProductQuery, getProduct };
