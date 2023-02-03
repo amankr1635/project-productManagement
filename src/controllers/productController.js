@@ -191,4 +191,5 @@ module.exports = {
   getProduct,
   updatProduct,
   deleteProduct,
+  
 };
