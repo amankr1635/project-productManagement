@@ -47,12 +47,12 @@ const getProductQuery = async function (req, res) {
             let data = await productModel.find({ isDeleted: false })
 
 
-            return res.status(200).send({ status: true, message: "", data: data })
+            return res.status(200).send({ status: true, message: "Success", data: data })
 
         }
         else {
-            let num = 1
-            if(req.query.sort == -1) num = -1
+            let num = 0
+            if(req.query.priceSort) num = req.query.priceSort
             let product = await productModel.find({ isDeleted: false, ...data }).sort({price : num})
             if (product.length == 0) return res.status(404).send({ status: false, message: "no prodect found" })
             return res.status(200).send({ status: true, data: product })
