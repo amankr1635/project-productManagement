@@ -23,6 +23,11 @@ const isValidName = function (name) {
   return nameRegex.test(name);
 };
 
+const isValidTitle = function (name) {
+  const nameRegex = /^[a-z A-Z_0-9]{3,20}$/;
+  return nameRegex.test(name);
+};
+
 const isValidNo = function (number) {
   const validnumber = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/
   // /^[6-9]\d{9}$/;
@@ -47,6 +52,7 @@ module.exports = {
   isValidEmail,
   passwordVal,
   isValidName,
+  isValidTitle,
   isValidNo,
   isValidPin,
   isValidString,
