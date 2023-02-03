@@ -1,5 +1,5 @@
 const express = require("express");
-const { product, getProductQuery, getProduct } = require("./controllers/productController");
+const { product, getProductQuery, getProduct, updatProduct, deleteProduct } = require("./controllers/productController");
 const router = express.Router();
 
 const {user,login,getUser,updateUser} = require("./controllers/userController");
@@ -18,6 +18,8 @@ router.put("/user/:userId/profile", authentication, authorization, updateUser);
 router.post("/products",product)
 router.get("/products",getProductQuery)
 router.get("/products/:productId",getProduct)
+router.put('/products/:productId',updatProduct)
+router.delete("/products/:productId",deleteProduct)
 
 
 router.all("/*", function (req, res) { res.status(404).send({ status: false, msg: "Invalid HTTP request" }) })

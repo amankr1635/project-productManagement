@@ -43,13 +43,11 @@ const product = async function (req, res) {
       return res.status(400).send({ msg: "No file found" });
     }
     let createProduct = await productModel.create(data);
-    return res
-      .status(201)
-      .send({
-        status: true,
-        message: "Product created successfully",
-        data: createProduct,
-      });
+    return res.status(201).send({
+      status: true,
+      message: "Product created successfully",
+      data: createProduct,
+    });
   } catch (error) {
     return res.status(500).send({ status: false, error: error.message });
   }
@@ -95,12 +93,10 @@ const getProduct = async function (req, res) {
       isDeleted: false,
     });
     if (!products) {
-      return res
-        .status(404)
-        .send({
-          status: false,
-          message: "No product available on given userId",
-        });
+      return res.status(404).send({
+        status: false,
+        message: "No product available on given userId",
+      });
     }
     return res
       .status(200)
@@ -163,21 +159,36 @@ const updatProduct = async function (req, res) {
     return res.status(500).send({ status: false, message: error.message });
   }
 };
-const deleteProduct = async function(req,res){
-    try{
-    let params = req.params.productId
-    if(!mongoose.isValidObjectId(params)) return res.status(400).send({status: false, message: "please enter a valid productId"})
+const deleteProduct = async function (req, res) {
+  try {
+    let params = req.params.productId;
+    if (!mongoose.isValidObjectId(params))
+      return res
+        .status(400)
+        .send({ status: false, message: "please enter a valid productId" });
 
-    let deletePro = await productModel.findOneAndUpdate({_id:params,isDeleted:false},{isDeleted: true,deletedAt: Date.now() },{new:true})
-    if(!deletePro) return res.status(404).send({status: false, message: "Product not found"})
+    let deletePro = await productModel.findOneAndUpdate(
+      { _id: params, isDeleted: false },
+      { isDeleted: true, deletedAt: Date.now() },
+      { new: true }
+    );
+    if (!deletePro)
+      return res
+        .status(404)
+        .send({ status: false, message: "Product not found" });
 
-    return res.status(200).send({status: false , message: "Product is deleted" })
+    return res
+      .status(200)
+      .send({ status: false, message: "Product is deleted" });
+  } catch (err) {
+    return res.status(400).send({ status: false, message: err.message });
+  }
+};
 
-
-    }catch(err){
-        return res.status(400).send({status: false, message: err.message})
-    }
-}
-
-
-module.exports = { product, getProductQuery, getProduct };
+module.exports = {
+  product,
+  getProductQuery,
+  getProduct,
+  updatProduct,
+  deleteProduct,
+};
