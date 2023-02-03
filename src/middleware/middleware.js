@@ -6,7 +6,6 @@ const authentication = async function (req, res, next) {
 try {
 	  if(!req.headers.authorization) return res.status(400).send({ status: false, message: "token is required" });
 	  let token = req.headers.authorization.split(" ")[1];
-	  console.log(token);
 	  let userId = req.params.userId;
 	  if (!mongoose.isValidObjectId(userId))
 	    return res
@@ -43,7 +42,7 @@ try {
 	      .status(404)
 	      .send({ status: false, message: "user with this ID is not present." });
 	
-	  if (userToken != userData.userId)
+	  if (userToken != userData._id)
 	    return res
 	      .status(401)
 	      .send({ status: false, message: "You are not authorized" });

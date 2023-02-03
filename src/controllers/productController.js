@@ -111,13 +111,35 @@ const getProductQuery = async function (req, res) {
         if (data.name) data.title = data.name;
         if (Object.keys(data).length == 0) {
             let data = await productModel.find({ isDeleted: false });
-
             return res
                 .status(200)
                 .send({ status: true, message: "Success", data: data });
         } else {
-            let num = 0;
+            let availableSizesEnum = productModel.schema.obj.availableSizes.enum
+            if (data.size || data.size == "") {
+                data.availableSizes = data.size.trim()
+
+                if (data.availableSizes == "") return res.status(400).send({ status: false, message: "Size field can not be empty" });
+                if (!availableSizesEnum.includes(data.availableSizes))
+                    return res
+                        .status(400)
+                        .send({ status: false, message: `Enter a valid Size from ${availableSizesEnum}` });
+
+            }
+            if (Number(data.title)) return res.status(400).send({ status: false, message: "Name can not contain numbers only" })
+            if (!isValidTitle(data.title))
+                return res
+                    .status(400)
+                    .send({ status: false, message: "Name is Invalid" });
+
+            if (data.name || data.name == "") {
+                data.title = data.name.trim()
+                if (data.title == "") return res.status(400).send({ status: false, message: "Name field can not be empty" });
+            }
+
+            let num
             if (req.query.priceSort) num = req.query.priceSort;
+            if (num !== "-1" && num !== "1" && num !== "0") return res.status(400).send({ status: false, message: "Please enter -1 or 1 for price sorting" })
             let product = await productModel
                 .find({ isDeleted: false, ...data })
                 .sort({ price: num });
@@ -161,45 +183,84 @@ const getProduct = async function (req, res) {
 const updatProduct = async function (req, res) {
     try {
         let data = req.body;
+        data.files = req.files
         let productId = req.params.productId;
 
         if (!mongoose.isValidObjectId(productId))
             return res
                 .status(400)
                 .send({ status: false, message: "invalid productId" });
-        if (Object.keys(data).length == 0)
+        let keys = Object.keys(data)
+        if (keys.length == 0)
             return res
                 .status(400)
                 .send({ status: false, message: "please provide someting" });
-        let productObject = {};
-        if (data.title) {
-            productObject.title = data.title;
+
+        // let productObject = {};
+        let arr = ["title","description","price","currencyId","currencyFormat","files","style","availableSizes","installments"]
+        for(let i = 0 ; i <keys.length ; i++){
+            if(!arr.includes(keys[i])){ 
+                delete data[keys[i]]
+            }else{
+                if(data[keys[i]]=='title'){
+
+                }
+                if(data[keys[i]]=='description'){
+                    
+                }
+                if(data[keys[i]]=='price'){
+                    
+                }
+                if(data[keys[i]]=='currencyId'){
+                    
+                }
+                if(data[keys[i]]=='currencyFormat'){
+                    
+                }
+                if(data[keys[i]]=='files'){
+                    
+                }
+                if(data[keys[i]]=='style'){
+                    
+                }
+                if(data[keys[i]]=='availableSizes'){
+                    
+                }
+                if(data[keys[i]]=='installments'){
+                    
+                }
+
+            }
         }
-        if (data.description) {
-            productObject.description = data.description;
-        }
-        if (data.price) {
-            productObject.price = data.price;
-        }
-        if (data.currencyId) {
-            productObject.currencyId = data.currencyId;
-        }
-        if (data.currencyFormat) {
-            productObject.currencyFormat = data.currencyFormat;
-        }
-        if (data.isFreeShipping) {
-            productObject.isFreeShipping = data.isFreeShipping;
-        }
-        if (data.availableSizes) {
-            productObject.availableSizes = data.availableSizes;
-        }
-        if (data.installments) {
-            productObject.installments = data.installments;
-        }
+
+        // if (data.title) {
+        //     productObject.title = data.title;
+        // }
+        // if (data.description) {
+        //     productObject.description = data.description;
+        // }
+        // if (data.price) {
+        //     productObject.price = data.price;
+        // }
+        // if (data.currencyId) {
+        //     productObject.currencyId = data.currencyId;
+        // }
+        // if (data.currencyFormat) {
+        //     productObject.currencyFormat = data.currencyFormat;
+        // }
+        // if (data.isFreeShipping) {
+        //     productObject.isFreeShipping = data.isFreeShipping;
+        // }
+        // if (data.availableSizes) {
+        //     productObject.availableSizes = data.availableSizes;
+        // }
+        // if (data.installments) {
+        //     productObject.installments = data.installments;
+        // }
 
         let update = await productModel.findOneAndUpdate(
             { _id: productId, isDeleted: false },
-            productObject,
+            data,
             { new: true }
         );
         if (!update)

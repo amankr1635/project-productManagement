@@ -7,7 +7,7 @@ const { isValidPin, isValidName, isValidEmail, isValidNo, passwordVal, isValidIm
 const user = async function (req, res) {
     try {
         let data = req.body;
-        data.files = req.files;
+        if (req.files.length > 0) data.files = req.files;
         let keys = Object.keys(data);
         let dataArr = ["fname", "lname", "email", "files", "phone", "password", "address"];
         for (let i of dataArr) {
@@ -235,9 +235,11 @@ const getUser = async function (req, res) {
         .send({ status: true, message: "User profile details", data: user });
 };
 
+
 const updateUser = async function (req, res) {
     try {
         let data = req.body;
+        if(Object.keys(data).length==0&&!req.files) return res.status(400).send({status:false,message:"please provide some data to update"})
         let userId = req.params.userId;
 
         if (data.fname) {
@@ -261,7 +263,9 @@ const updateUser = async function (req, res) {
                     .status(400)
                     .send({ status: false, message: "email is Invalid" });
         }
-        if (req.files) {
+        // if(req.files.length == 0) return res.status(400).send({status:false,message:"ProfileImage field can not be empty"})
+
+        if (req.files && req.files.length > 0) {
             data.files = req.files;
             if (!isValidImage(data.files[0].originalname))
                 return res.status(400).send({
@@ -275,7 +279,8 @@ const updateUser = async function (req, res) {
             } else {
                 return res.status(400).send({ msg: "No file found" });
             }
-        }
+        } else { delete data.profileImage }
+
         if (data.phone) {
             data.phone = data.phone.trim();
             if (!isValidNo(data.phone))
@@ -311,7 +316,10 @@ const updateUser = async function (req, res) {
             data.password = hash;
         }
         if (data.address) {
-            let address = JSON.parse(req.body.address);
+            let address 
+            JSON.parse(req.body.address)
+            .then((x)=>address=x)
+            .catch((err)=> {return res.status(400).send({status:false,message:"Invalid address passed"})})
             let findData = await userModel.findById(userId);
             let address2 = findData.address;
 
