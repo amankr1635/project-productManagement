@@ -6,6 +6,7 @@ const {
   isValidTitle,
   isValidEmail,
   isValidNo,
+  isValidDecimal,
   passwordVal,
   isValidImage,
   isValidString,
@@ -41,21 +42,23 @@ const product = async function (req, res) {
             message: `${dataArr[i]} field is mandatory `,
           });
       if (entries[j][k] == "title") {
-        if (entries[j][1].trim() == "")
+        data.title = entries[j][1].trim()
+        if (entries[j][1] == "")
           return res
             .status(400)
             .send({
               status: false,
               message: `${entries[j][k]} field cannot be empty `,
             });
-        if (data.title == "") data.title = data.title.trim();
-        if (!isValidTitle(data.title))
+        // if (data.title == "") data.title = data.title.trim();
+        if (Number(data.title.split(" ").join("")) || !isValidTitle(data.title))
           return res
             .status(400)
             .send({ status: false, message: "title is Invalid" });
       }
       if (entries[j][k] == "description") {
-        if (entries[j][1].trim() == "")
+        data.description = entries[j][1].trim()
+        if (entries[j][1] == "")
           return res
             .status(400)
             .send({
@@ -64,23 +67,20 @@ const product = async function (req, res) {
             });
       }
       if (entries[j][k] == "price") {
-        if (entries[j][1].trim() == "")
+        if (entries[j][k].trim() == "")
           return res
             .status(400)
             .send({
               status: false,
               message: `${entries[j][k]} field cannot be empty `,
             });
-        if (!Number(entries[j][1]))
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `${entries[j][k]} can only be a number and can not be 0 `,
-            });
+        if (!Number(entries[j][1])) {
+          return res.status(400).send({ status: false, message: `${entries[j][k]} can only be a number and can not be 0 ` });
+        }
       }
       if (entries[j][k] == "currencyId") {
-        if (entries[j][1].trim() == "")
+        data.currencyId = entries[j][k].trim()
+        if (entries[j][1] == "")
           return res
             .status(400)
             .send({
@@ -96,7 +96,8 @@ const product = async function (req, res) {
             });
       }
       if (entries[j][k] == "currencyFormat") {
-        if (entries[j][1].trim() == "")
+        data.currencyFormat = entries[j][k].trim()
+        if (entries[j][1] == "")
           return res
             .status(400)
             .send({
@@ -109,14 +110,15 @@ const product = async function (req, res) {
             .send({ status: false, message: `${entries[j][k]} must be '₹' ` });
       }
     }
-    if (!isValidImage(data.files[0].originalname))
+    if (data.files[0] && !isValidImage(data.files[0].originalname))
       return res.status(400).send({
         status: false,
         message:
           "Image format is Invalid please provide .jpg or .png or .jpeg format",
       });
     if (data.style || data.style == "") {
-      if (data.style.trim() == "")
+      data.style = data.style.trim()
+      if (data.style == "")
         return res
           .status(400)
           .send({ status: false, message: "Enter value for style field" }); //delete data.style
@@ -141,12 +143,15 @@ const product = async function (req, res) {
     }
 
     let arr = [];
-    let sizes = data.availableSizes.split("");
-    let availableSizesEnum = productModel.schema.obj.availableSizes.enum;
-    sizes.forEach((a) => {
-      if (availableSizesEnum.includes(a)) arr.push(a);
-    });
-    data.availableSizes = arr;
+    let sizes
+    if (data.availableSizes) {
+      sizes = data.availableSizes.split("");
+      let availableSizesEnum = productModel.schema.obj.availableSizes.enum;
+      sizes.forEach((a) => {
+        if (availableSizesEnum.includes(a)) arr.push(a);
+      });
+      data.availableSizes = arr;
+    }
 
     if (data.files && data.files.length > 0) {
       let uploadedFileURL = await uploadFile(data.files[0]);
@@ -294,18 +299,27 @@ const getProduct = async function (req, res) {
 const updatProduct = async function (req, res) {
   try {
     let data = req.body;
-    data.files = req.files;
+    if (Object.keys(data).length == 0 && !req.files)
+      return res
+        .status(400)
+        .send({ status: false, message: "please provide some data to update" });
+    // if (req.files && req.files.length == 0 && Object.keys(data).length == 0) return res
+    //   .status(400)
+    //   .send({ status: false, message: "Product Image is required" });
     let productId = req.params.productId;
+    if (req.files.length > 0) {
+      data.files = req.files;
+    }
 
     if (!mongoose.isValidObjectId(productId))
       return res
         .status(400)
         .send({ status: false, message: "invalid productId" });
     let keys = Object.keys(data);
-    if (keys.length == 0)
-      return res
-        .status(400)
-        .send({ status: false, message: "please provide someting" });
+    // if (keys.length == 0)
+    //   return res
+    //     .status(400)
+    //     .send({ status: false, message: "please provide someting" });
 
     // let productObject = {};
     let arr = [
@@ -314,6 +328,7 @@ const updatProduct = async function (req, res) {
       "price",
       "currencyId",
       "currencyFormat",
+      "isFreeShipping",
       "files",
       "style",
       "availableSizes",
@@ -323,33 +338,142 @@ const updatProduct = async function (req, res) {
       if (!arr.includes(keys[i])) {
         delete data[keys[i]];
       } else {
-        if (data[keys[i]] == "title") {
+        if (keys[i] == "title") {
           if (data.title == "") data.title = data.title.trim();
-          if (!isValidTitle(data.title))
+          if (data.title == "") return res.status(400).send({ status: false, message: "Title field cannot be empty" })
+          if (Number(data.title.split(" ").join("")) || !isValidTitle(data.title))
             return res
               .status(400)
               .send({ status: false, message: "title is Invalid" });
+          let dbCall = await productModel.findOne({ title: data.title })
+          if (dbCall) return res.status(400).send({ status: false, message: "Title already exist" })
         }
-        if (data[keys[i]] == "description") {
+        if (keys[i] == "description") {
+          data.description = data.description.trim()
+          if (data.description == "")
+            return res
+              .status(400)
+              .send({
+                status: false,
+                message: `${keys[i]} field cannot be empty `,
+              });
+          if (Number(data.description.split(" ").join("")))
+            return res
+              .status(400)
+              .send({ status: false, message: `${keys[i]} is Invalid` });
         }
-        if (data[keys[i]] == "price") {
+        if (keys[i] == "price") {
+          if (data.price == "")
+            return res
+              .status(400)
+              .send({
+                status: false,
+                message: `${keys[i]} field cannot be empty `,
+              });
+          if (!Number(data.price))
+            return res
+              .status(400)
+              .send({ status: false, message: `${keys[i]} is Invalid` });
         }
-        if (data[keys[i]] == "currencyId") {
+        if (keys[i] == "currencyId") {
+          data.currencyId = data.currencyId.trim()
+          if (data.currencyId == "")
+            return res
+              .status(400)
+              .send({
+                status: false,
+                message: `${keys[i]} field cannot be empty `,
+              });
+          if (data.currencyId != "INR")
+            return res
+              .status(400)
+              .send({
+                status: false,
+                message: `${keys[i]} must be 'INR' `,
+              });
         }
-        if (data[keys[i]] == "currencyFormat") {
+        if (keys[i] == "currencyFormat") {
+          data.currencyFormat = data.currencyFormat.trim()
+          if (data.currencyFormat == "")
+            return res
+              .status(400)
+              .send({
+                status: false,
+                message: `${keys[i]} field cannot be empty `,
+              });
+          if (data.currencyFormat != "₹")
+            return res
+              .status(400)
+              .send({ status: false, message: `${keys[i]} must be '₹' ` });
         }
-        if (data[keys[i]] == "files") {
+        if (keys[i] == "isFreeShipping") {
+          data.isFreeShipping = data.isFreeShipping.trim()
+          if (data.isFreeShipping == "")
+            return res
+              .status(400)
+              .send({
+                status: false,
+                message: `${keys[i]} field cannot be empty `,
+              });
+          if (data.isFreeShipping != "true" && data.isFreeShipping != "false")
+            return res
+              .status(400)
+              .send({ status: false, message: `${keys[i]} must be 'true' or 'false ` });
         }
-        if (data[keys[i]] == "style") {
+        if (keys[i] == "files") {
+          if (data.files[0] && !isValidImage(data.files[0].originalname))
+            return res.status(400).send({
+              status: false,
+              message:
+                "Image format is Invalid please provide .jpg or .png or .jpeg format",
+            });
+          if (data.files && data.files.length > 0) {
+            let uploadedFileURL = await uploadFile(data.files[0]);
+            data.productImage = uploadedFileURL;
+          }
+          // else {
+          //   return res
+          //     .status(400)
+          //     .send({ status: false, message: "Product Image is required" });
+          // }
         }
-        if (data[keys[i]] == "availableSizes") {
+        if (keys[i] == "style") {
+          data.style = data.style.trim()
+          if (data.style == "")
+            return res
+              .status(400)
+              .send({
+                status: false,
+                message: `${keys[i]} field cannot be empty `,
+              });
+          if (Number(data.style) || !isValidTitle(data.style))
+            return res
+              .status(400)
+              .send({ status: false, message: `${keys[i]} is Invalid` });
         }
-        if (data[keys[i]] == "installments") {
+        if (keys[i] == "availableSizes") {
+          data.availableSizes = data.availableSizes.trim()
+          if (data.availableSizes == "") return res.status(400).send({ status: false, message: "Please enter size" })
+          let arr = [];
+          let sizes
+          sizes = data.availableSizes.split("");
+          let availableSizesEnum = productModel.schema.obj.availableSizes.enum;
+          let flag = true
+          sizes.forEach((a) => {
+            if (availableSizesEnum.includes(a)) arr.push(a);
+            else {
+              flag = false
+            }
+          });
+          if (!flag) return res.status(400).send({ status: false, message: `Give valid Sizes between ${availableSizesEnum}` })
+          data.availableSizes = arr;
+          data.$addToSet = { availableSizes: arr }
+          data.$addToSet = { availableSizes: validSizes }
+        }
+        if (keys[i] == "installments") {
         }
       }
     }
-
-
 
     let update = await productModel.findOneAndUpdate(
       { _id: productId, isDeleted: false },

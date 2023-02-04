@@ -28,6 +28,11 @@ const isValidTitle = function (name) {
   return nameRegex.test(name);
 };
 
+const isValidDecimal = function(number){
+  const regexp = /^\d+(\.\d{1,2})?$/
+  return regexp.test(number);
+}
+
 const isValidNo = function (number) {
   const validnumber = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/
   // /^[6-9]\d{9}$/;
@@ -54,6 +59,7 @@ module.exports = {
   isValidName,
   isValidTitle,
   isValidNo,
+  isValidDecimal,
   isValidPin,
   isValidString,
   isValidImage
