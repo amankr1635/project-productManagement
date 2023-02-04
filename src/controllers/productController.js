@@ -221,25 +221,47 @@ const getProductQuery = async function (req, res) {
       }
 
       let num;
-      if (req.query.priceSort) num = req.query.priceSort;
-      if (num !== "-1" && num !== "1" && num !== "0")
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "Please enter -1 or 1 for price sorting",
-          });
+      if (req.query.priceSort) {
+        num = req.query.priceSort;
+        if (num !== "-1" && num !== "1" && num !== "0")
+          return res
+            .status(400)
+            .send({
+              status: false,
+              message: "Please enter -1 or 1 for price sorting",
+            });
+      }
+      if (req.query.priceGreaterThan && req.query.priceLessThan) {
+        req.query.priceGreaterThan = req.query.priceGreaterThan.trim()
+        req.query.priceLessThan = req.query.priceLessThan.trim()
+        if (req.query.priceGreaterThan == "" && req.query.priceLessThan == "") return res.status(400).send({ status: false, message: "Price field can not be empty" });
+        if (!Number(req.query.priceGreaterThan) || !Number(req.query.priceLessThan)) return res.status(400).send({ status: false, message: "Enter price in Number" })
+        data.$and = [{ price: { $gte: req.query.priceGreaterThan } }, { price: { $lte: req.query.priceLessThan } }]
+      }
+      else if (req.query.priceGreaterThan) {
+        req.query.priceGreaterThan = req.query.priceGreaterThan.trim()
+        if (req.query.priceGreaterThan == "") return res.status(400).send({ status: false, message: "Price field can not be empty" });
+        if (!Number(req.query.priceGreaterThan)) return res.status(400).send({ status: false, message: "Enter price in Number" })
+        data.$and = [{ price: { $gte: req.query.priceGreaterThan } }]
+      }
+      else if (req.query.priceLessThan) {
+        req.query.priceLessThan = req.query.priceLessThan.trim()
+        if (req.query.priceLessThan == "") return res.status(400).send({ status: false, message: "Price field can not be empty" });
+        if (!Number(req.query.priceLessThan)) return res.status(400).send({ status: false, message: "Enter price in Number" })
+        data.$and = [{ price: { $lte: req.query.priceLessThan } }]
+      }
+
       let product = await productModel
         .find({ isDeleted: false, ...data })
         .sort({ price: num });
       if (product.length == 0)
         return res
           .status(404)
-          .send({ status: false, message: "no prodect found" });
+          .send({ status: false, message: "no product found" });
       return res.status(200).send({ status: true, data: product });
     }
   } catch (error) {
-    return res.status(500).send({ status: false, msg: err.message });
+    return res.status(500).send({ status: false, msg: error.message });
   }
 };
 
@@ -302,6 +324,11 @@ const updatProduct = async function (req, res) {
         delete data[keys[i]];
       } else {
         if (data[keys[i]] == "title") {
+          if (data.title == "") data.title = data.title.trim();
+          if (!isValidTitle(data.title))
+            return res
+              .status(400)
+              .send({ status: false, message: "title is Invalid" });
         }
         if (data[keys[i]] == "description") {
         }
@@ -322,7 +349,7 @@ const updatProduct = async function (req, res) {
       }
     }
 
-   
+
 
     let update = await productModel.findOneAndUpdate(
       { _id: productId, isDeleted: false },
@@ -360,7 +387,7 @@ const deleteProduct = async function (req, res) {
       .status(200)
       .send({ status: false, message: "Product is deleted" });
   } catch (err) {
-    return res.status(400).send({ status: false, message: err.message });
+    return res.status(500).send({ status: false, message: err.message });
   }
 };
 
