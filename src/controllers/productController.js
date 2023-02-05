@@ -1,29 +1,14 @@
 const { default: mongoose } = require("mongoose");
 const productModel = require("../models/productModel");
 const uploadFile = require("../aws/aws");
-const {
-  isValidPin,
-  isValidTitle,
-  isValidEmail,
-  isValidNo,
-  isValidDecimal,
-  passwordVal,
-  isValidImage,
-  isValidString,
-} = require("../validations/validation");
+const {isValidTitle,isValidImage} = require("../validations/validation");
 
 const product = async function (req, res) {
   try {
     let data = req.body;
     data.files = req.files;
     let entries = Object.entries(data);
-    let dataArr = [
-      "title",
-      "description",
-      "price",
-      "currencyId",
-      "currencyFormat",
-    ];
+    let dataArr = ["title","description","price","currencyId","currencyFormat"];
     for (let i = 0; i < dataArr.length; i++) {
       let flag = false;
       let k = 0;
@@ -35,75 +20,65 @@ const product = async function (req, res) {
         }
       }
       if (!flag)
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: `${dataArr[i]} field is mandatory `,
-          });
+        return res.status(400).send({
+          status: false,
+          message: `${dataArr[i]} field is mandatory `,
+        });
       if (entries[j][k] == "title") {
-        data.title = entries[j][1].trim()
+        data.title = entries[j][1].trim();
         if (entries[j][1] == "")
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `${entries[j][k]} field cannot be empty `,
-            });
-        // if (data.title == "") data.title = data.title.trim();
+          return res.status(400).send({
+            status: false,
+            message: `${entries[j][k]} field cannot be empty `,
+          });
         if (Number(data.title.split(" ").join("")) || !isValidTitle(data.title))
           return res
             .status(400)
             .send({ status: false, message: "title is Invalid" });
       }
       if (entries[j][k] == "description") {
-        data.description = entries[j][1].trim()
+        data.description = entries[j][1].trim();
         if (entries[j][1] == "")
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `${entries[j][k]} field cannot be empty `,
-            });
+          return res.status(400).send({
+            status: false,
+            message: `${entries[j][k]} field cannot be empty `,
+          });
       }
       if (entries[j][k] == "price") {
         if (entries[j][k].trim() == "")
+          return res.status(400).send({
+            status: false,
+            message: `${entries[j][k]} field cannot be empty `,
+          });
+        if (!Number(entries[j][1])) {
           return res
             .status(400)
             .send({
               status: false,
-              message: `${entries[j][k]} field cannot be empty `,
+              message: `${entries[j][k]} can only be a number and can not be 0 `,
             });
-        if (!Number(entries[j][1])) {
-          return res.status(400).send({ status: false, message: `${entries[j][k]} can only be a number and can not be 0 ` });
         }
       }
       if (entries[j][k] == "currencyId") {
-        data.currencyId = entries[j][k].trim()
+        data.currencyId = entries[j][k].trim();
         if (entries[j][1] == "")
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `${entries[j][k]} field cannot be empty `,
-            });
+          return res.status(400).send({
+            status: false,
+            message: `${entries[j][k]} field cannot be empty `,
+          });
         if (entries[j][1] != "INR")
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `${entries[j][k]} must be 'INR' `,
-            });
+          return res.status(400).send({
+            status: false,
+            message: `${entries[j][k]} must be 'INR' `,
+          });
       }
       if (entries[j][k] == "currencyFormat") {
-        data.currencyFormat = entries[j][k].trim()
+        data.currencyFormat = entries[j][k].trim();
         if (entries[j][1] == "")
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `${entries[j][k]} field cannot be empty `,
-            });
+          return res.status(400).send({
+            status: false,
+            message: `${entries[j][k]} field cannot be empty `,
+          });
         if (entries[j][1] != "₹")
           return res
             .status(400)
@@ -117,7 +92,7 @@ const product = async function (req, res) {
           "Image format is Invalid please provide .jpg or .png or .jpeg format",
       });
     if (data.style || data.style == "") {
-      data.style = data.style.trim()
+      data.style = data.style.trim();
       if (data.style == "")
         return res
           .status(400)
@@ -127,23 +102,19 @@ const product = async function (req, res) {
     if (data.installments || data.installments == "") {
       data.installments = data.installments.trim();
       if (data.installments == "")
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "Installment field can not be empty",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "Installment field can not be empty",
+        });
       if (!Number(data.installments))
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "Installment field can only contain Number",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "Installment field can only contain Number",
+        });
     }
 
     let arr = [];
-    let sizes
+    let sizes;
     if (data.availableSizes) {
       sizes = data.availableSizes.split("");
       let availableSizesEnum = productModel.schema.obj.availableSizes.enum;
@@ -167,7 +138,6 @@ const product = async function (req, res) {
       return res
         .status(400)
         .send({ status: false, message: "title is already exist" });
-
     let createProduct = await productModel.create(data);
     return res.status(201).send({
       status: true,
@@ -198,20 +168,16 @@ const getProductQuery = async function (req, res) {
             .status(400)
             .send({ status: false, message: "Size field can not be empty" });
         if (!availableSizesEnum.includes(data.availableSizes))
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `Enter a valid Size from ${availableSizesEnum}`,
-            });
+          return res.status(400).send({
+            status: false,
+            message: `Enter a valid Size from ${availableSizesEnum}`,
+          });
       }
       if (Number(data.title))
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "Name can not contain numbers only",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "Name can not contain numbers only",
+        });
       if (!isValidTitle(data.title))
         return res
           .status(400)
@@ -229,31 +195,51 @@ const getProductQuery = async function (req, res) {
       if (req.query.priceSort) {
         num = req.query.priceSort;
         if (num !== "-1" && num !== "1" && num !== "0")
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: "Please enter -1 or 1 for price sorting",
-            });
+          return res.status(400).send({
+            status: false,
+            message: "Please enter -1 or 1 for price sorting",
+          });
       }
       if (req.query.priceGreaterThan && req.query.priceLessThan) {
-        req.query.priceGreaterThan = req.query.priceGreaterThan.trim()
-        req.query.priceLessThan = req.query.priceLessThan.trim()
-        if (req.query.priceGreaterThan == "" && req.query.priceLessThan == "") return res.status(400).send({ status: false, message: "Price field can not be empty" });
-        if (!Number(req.query.priceGreaterThan) || !Number(req.query.priceLessThan)) return res.status(400).send({ status: false, message: "Enter price in Number" })
-        data.$and = [{ price: { $gte: req.query.priceGreaterThan } }, { price: { $lte: req.query.priceLessThan } }]
-      }
-      else if (req.query.priceGreaterThan) {
-        req.query.priceGreaterThan = req.query.priceGreaterThan.trim()
-        if (req.query.priceGreaterThan == "") return res.status(400).send({ status: false, message: "Price field can not be empty" });
-        if (!Number(req.query.priceGreaterThan)) return res.status(400).send({ status: false, message: "Enter price in Number" })
-        data.$and = [{ price: { $gte: req.query.priceGreaterThan } }]
-      }
-      else if (req.query.priceLessThan) {
-        req.query.priceLessThan = req.query.priceLessThan.trim()
-        if (req.query.priceLessThan == "") return res.status(400).send({ status: false, message: "Price field can not be empty" });
-        if (!Number(req.query.priceLessThan)) return res.status(400).send({ status: false, message: "Enter price in Number" })
-        data.$and = [{ price: { $lte: req.query.priceLessThan } }]
+        req.query.priceGreaterThan = req.query.priceGreaterThan.trim();
+        req.query.priceLessThan = req.query.priceLessThan.trim();
+        if (req.query.priceGreaterThan == "" && req.query.priceLessThan == "")
+          return res
+            .status(400)
+            .send({ status: false, message: "Price field can not be empty" });
+        if (
+          !Number(req.query.priceGreaterThan) ||
+          !Number(req.query.priceLessThan)
+        )
+          return res
+            .status(400)
+            .send({ status: false, message: "Enter price in Number" });
+        data.$and = [
+          { price: { $gte: req.query.priceGreaterThan } },
+          { price: { $lte: req.query.priceLessThan } },
+        ];
+      } else if (req.query.priceGreaterThan) {
+        req.query.priceGreaterThan = req.query.priceGreaterThan.trim();
+        if (req.query.priceGreaterThan == "")
+          return res
+            .status(400)
+            .send({ status: false, message: "Price field can not be empty" });
+        if (!Number(req.query.priceGreaterThan))
+          return res
+            .status(400)
+            .send({ status: false, message: "Enter price in Number" });
+        data.$and = [{ price: { $gte: req.query.priceGreaterThan } }];
+      } else if (req.query.priceLessThan) {
+        req.query.priceLessThan = req.query.priceLessThan.trim();
+        if (req.query.priceLessThan == "")
+          return res
+            .status(400)
+            .send({ status: false, message: "Price field can not be empty" });
+        if (!Number(req.query.priceLessThan))
+          return res
+            .status(400)
+            .send({ status: false, message: "Enter price in Number" });
+        data.$and = [{ price: { $lte: req.query.priceLessThan } }];
       }
 
       let product = await productModel
@@ -303,9 +289,6 @@ const updatProduct = async function (req, res) {
       return res
         .status(400)
         .send({ status: false, message: "please provide some data to update" });
-    // if (req.files && req.files.length == 0 && Object.keys(data).length == 0) return res
-    //   .status(400)
-    //   .send({ status: false, message: "Product Image is required" });
     let productId = req.params.productId;
     if (req.files.length > 0) {
       data.files = req.files;
@@ -316,47 +299,37 @@ const updatProduct = async function (req, res) {
         .status(400)
         .send({ status: false, message: "invalid productId" });
     let keys = Object.keys(data);
-    // if (keys.length == 0)
-    //   return res
-    //     .status(400)
-    //     .send({ status: false, message: "please provide someting" });
-
-    // let productObject = {};
-    let arr = [
-      "title",
-      "description",
-      "price",
-      "currencyId",
-      "currencyFormat",
-      "isFreeShipping",
-      "files",
-      "style",
-      "availableSizes",
-      "installments",
-    ];
+    let arr = ["title","description","price","currencyId","currencyFormat","isFreeShipping","files","style","availableSizes","installments"];
     for (let i = 0; i < keys.length; i++) {
       if (!arr.includes(keys[i])) {
         delete data[keys[i]];
       } else {
         if (keys[i] == "title") {
           if (data.title == "") data.title = data.title.trim();
-          if (data.title == "") return res.status(400).send({ status: false, message: "Title field cannot be empty" })
-          if (Number(data.title.split(" ").join("")) || !isValidTitle(data.title))
+          if (data.title == "")
+            return res
+              .status(400)
+              .send({ status: false, message: "Title field cannot be empty" });
+          if (
+            Number(data.title.split(" ").join("")) ||
+            !isValidTitle(data.title)
+          )
             return res
               .status(400)
               .send({ status: false, message: "title is Invalid" });
-          let dbCall = await productModel.findOne({ title: data.title })
-          if (dbCall) return res.status(400).send({ status: false, message: "Title already exist" })
-        }
-        if (keys[i] == "description") {
-          data.description = data.description.trim()
-          if (data.description == "")
+          let dbCall = await productModel.findOne({ title: data.title });
+          if (dbCall)
             return res
               .status(400)
-              .send({
-                status: false,
-                message: `${keys[i]} field cannot be empty `,
-              });
+              .send({ status: false, message: "Title already exist" });
+        }
+        if (keys[i] == "description") {
+          data.description = data.description.trim();
+          if (data.description == "")
+            return res.status(400).send({
+              status: false,
+              message: `${keys[i]} field cannot be empty `,
+            });
           if (Number(data.description.split(" ").join("")))
             return res
               .status(400)
@@ -364,61 +337,54 @@ const updatProduct = async function (req, res) {
         }
         if (keys[i] == "price") {
           if (data.price == "")
-            return res
-              .status(400)
-              .send({
-                status: false,
-                message: `${keys[i]} field cannot be empty `,
-              });
+            return res.status(400).send({
+              status: false,
+              message: `${keys[i]} field cannot be empty `,
+            });
           if (!Number(data.price))
             return res
               .status(400)
               .send({ status: false, message: `${keys[i]} is Invalid` });
         }
         if (keys[i] == "currencyId") {
-          data.currencyId = data.currencyId.trim()
+          data.currencyId = data.currencyId.trim();
           if (data.currencyId == "")
-            return res
-              .status(400)
-              .send({
-                status: false,
-                message: `${keys[i]} field cannot be empty `,
-              });
+            return res.status(400).send({
+              status: false,
+              message: `${keys[i]} field cannot be empty `,
+            });
           if (data.currencyId != "INR")
-            return res
-              .status(400)
-              .send({
-                status: false,
-                message: `${keys[i]} must be 'INR' `,
-              });
+            return res.status(400).send({
+              status: false,
+              message: `${keys[i]} must be 'INR' `,
+            });
         }
         if (keys[i] == "currencyFormat") {
-          data.currencyFormat = data.currencyFormat.trim()
+          data.currencyFormat = data.currencyFormat.trim();
           if (data.currencyFormat == "")
-            return res
-              .status(400)
-              .send({
-                status: false,
-                message: `${keys[i]} field cannot be empty `,
-              });
+            return res.status(400).send({
+              status: false,
+              message: `${keys[i]} field cannot be empty `,
+            });
           if (data.currencyFormat != "₹")
             return res
               .status(400)
               .send({ status: false, message: `${keys[i]} must be '₹' ` });
         }
         if (keys[i] == "isFreeShipping") {
-          data.isFreeShipping = data.isFreeShipping.trim()
+          data.isFreeShipping = data.isFreeShipping.trim();
           if (data.isFreeShipping == "")
+            return res.status(400).send({
+              status: false,
+              message: `${keys[i]} field cannot be empty `,
+            });
+          if (data.isFreeShipping != "true" && data.isFreeShipping != "false")
             return res
               .status(400)
               .send({
                 status: false,
-                message: `${keys[i]} field cannot be empty `,
+                message: `${keys[i]} must be 'true' or 'false `,
               });
-          if (data.isFreeShipping != "true" && data.isFreeShipping != "false")
-            return res
-              .status(400)
-              .send({ status: false, message: `${keys[i]} must be 'true' or 'false ` });
         }
         if (keys[i] == "files") {
           if (data.files[0] && !isValidImage(data.files[0].originalname))
@@ -431,47 +397,53 @@ const updatProduct = async function (req, res) {
             let uploadedFileURL = await uploadFile(data.files[0]);
             data.productImage = uploadedFileURL;
           }
-          // else {
-          //   return res
-          //     .status(400)
-          //     .send({ status: false, message: "Product Image is required" });
-          // }
         }
         if (keys[i] == "style") {
-          data.style = data.style.trim()
+          data.style = data.style.trim();
           if (data.style == "")
-            return res
-              .status(400)
-              .send({
-                status: false,
-                message: `${keys[i]} field cannot be empty `,
-              });
+            return res.status(400).send({
+              status: false,
+              message: `${keys[i]} field cannot be empty `,
+            });
           if (Number(data.style) || !isValidTitle(data.style))
             return res
               .status(400)
               .send({ status: false, message: `${keys[i]} is Invalid` });
         }
         if (keys[i] == "availableSizes") {
-          data.availableSizes = data.availableSizes.trim()
-          if (data.availableSizes == "") return res.status(400).send({ status: false, message: "Please enter size" })
+          data.availableSizes = data.availableSizes.trim();
+          if (data.availableSizes == "")
+            return res
+              .status(400)
+              .send({ status: false, message: "Please enter size" });
           let arr = [];
-          let sizes
-          sizes = data.availableSizes.split("");
+          let sizes;
+          sizes = data.availableSizes.split(",");
           let availableSizesEnum = productModel.schema.obj.availableSizes.enum;
-          let flag = true
+          let flag = true;
           sizes.forEach((a) => {
-            if (availableSizesEnum.includes(a)) arr.push(a);
+            if (availableSizesEnum.includes(a.trim())) arr.push(a.trim());
             else {
-              flag = false
+              flag = false;
             }
           });
-          if (!flag) return res.status(400).send({ status: false, message: `Give valid Sizes between ${availableSizesEnum}` })
-          data.availableSizes = arr;
-          data.$addToSet = { availableSizes: arr }
-          data.$addToSet = { availableSizes: validSizes }
+          if (!flag)
+            return res
+              .status(400)
+              .send({
+                status: false,
+                message: `Give valid Sizes between ${availableSizesEnum}`,
+              });
+          delete data.availableSizes;
+          data.$addToSet = { availableSizes: arr };
         }
-        if (keys[i] == "installments") {
-        }
+      }
+      if (keys[i] == "installments") {
+        if (!Number(data.installments))
+          return res.status(400).send({
+            status: false,
+            message: "Installment field can only contain Number",
+          });
       }
     }
 
@@ -515,10 +487,4 @@ const deleteProduct = async function (req, res) {
   }
 };
 
-module.exports = {
-  product,
-  getProductQuery,
-  getProduct,
-  updatProduct,
-  deleteProduct,
-};
+module.exports = {product,getProductQuery,getProduct,updatProduct,deleteProduct};
