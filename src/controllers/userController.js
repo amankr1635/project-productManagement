@@ -15,17 +15,12 @@ const {
 const user = async function (req, res) {
   try {
     let data = req.body;
+    if(Object.keys(data).length == 0 || !req.body){
+      return res.status(400).send({status: false, message:"please enter sometging in body"})
+    }
     if (req.files.length > 0) data.files = req.files;
     let keys = Object.keys(data);
-    let dataArr = [
-      "fname",
-      "lname",
-      "email",
-      "files",
-      "phone",
-      "password",
-      "address",
-    ];
+    let dataArr = ["fname","lname","email","files","phone","password","address"];
     for (let i of dataArr) {
       if (!keys.includes(i))
         return res

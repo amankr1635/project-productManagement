@@ -14,7 +14,6 @@ const productSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true
-      //  valid number/decimal
     },
     currencyId: {
       type: String,
@@ -33,7 +32,7 @@ const productSchema = new mongoose.Schema(
     productImage: {
       type: String,
       required: true
-    }, // s3 link
+    },
     style: String,
     availableSizes: {
       type: [String],

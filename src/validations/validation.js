@@ -53,14 +53,4 @@ const isValidString = function (input) {
   return true;
 };
 
-module.exports = {
-  isValidEmail,
-  passwordVal,
-  isValidName,
-  isValidTitle,
-  isValidNo,
-  isValidDecimal,
-  isValidPin,
-  isValidString,
-  isValidImage
-};
+module.exports = {isValidEmail,passwordVal,isValidName,isValidTitle,isValidNo,isValidDecimal,isValidPin,isValidString,isValidImage};
