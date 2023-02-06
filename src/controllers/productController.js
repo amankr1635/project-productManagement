@@ -302,7 +302,7 @@ const updatProduct = async function (req, res) {
         .status(400)
         .send({ status: false, message: "invalid productId" });
     let keys = Object.keys(data);
-    let arr = ["title","description","price","currencyId","currencyFormat","isFreeShipping","files","style","availableSizes","installments"];
+    let arr = ["title","description","price","currencyId","currencyFormat","isFreeShipping","productImage","files","style","availableSizes","installments"];
     for (let i = 0; i < keys.length; i++) {
       if (!arr.includes(keys[i])) {
         delete data[keys[i]];
@@ -388,6 +388,9 @@ const updatProduct = async function (req, res) {
                 status: false,
                 message: `${keys[i]} must be 'true' or 'false `,
               });
+        }
+        if(req.body.productImage == "") {
+          if (req.files.length === 0) return res.status(400).send({ status: false, message: "productImage cannot be empty" })
         }
         if (keys[i] == "files") {
           if (data.files[0] && !isValidImage(data.files[0].originalname))

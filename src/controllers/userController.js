@@ -301,7 +301,10 @@ const updateUser = async function (req, res) {
           .status(400)
           .send({ status: false, message: "email is Invalid" });
     }
-    // if(req.files.length == 0) return res.status(400).send({status:false,message:"ProfileImage field can not be empty"})
+    
+    if(req.body.profileImage == "") {
+      if (req.files.length === 0) return res.status(400).send({ status: false, message: "profileImage cannot be empty" })
+    }
 
     if (req.files && req.files.length > 0) {
       data.files = req.files;
