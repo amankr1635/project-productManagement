@@ -6,6 +6,9 @@ const {isValidTitle,isValidImage} = require("../validations/validation");
 const product = async function (req, res) {
   try {
     let data = req.body;
+    if(Object.keys(data).length == 0 || !req.body){
+      return res.status(400).send({status: false, message:"please enter something in body"})
+    }
     data.files = req.files;
     let entries = Object.entries(data);
     let dataArr = ["title","description","price","currencyId","currencyFormat"];
@@ -45,7 +48,7 @@ const product = async function (req, res) {
           });
       }
       if (entries[j][k] == "price") {
-        if (entries[j][k].trim() == "")
+        if (entries[j][1].trim() == "")
           return res.status(400).send({
             status: false,
             message: `${entries[j][k]} field cannot be empty `,
@@ -116,7 +119,7 @@ const product = async function (req, res) {
     let arr = [];
     let sizes;
     if (data.availableSizes) {
-      sizes = data.availableSizes.split("");
+      sizes = data.availableSizes.split(",");
       let availableSizesEnum = productModel.schema.obj.availableSizes.enum;
       sizes.forEach((a) => {
         if (availableSizesEnum.includes(a)) arr.push(a);
@@ -262,7 +265,7 @@ const getProduct = async function (req, res) {
     if (!mongoose.isValidObjectId(productId))
       return res
         .status(400)
-        .send({ status: false, message: "Please ented a valid productId" });
+        .send({ status: false, message: "Please enter a valid productId" });
 
     let products = await productModel.findOne({
       _id: productId,
@@ -271,7 +274,7 @@ const getProduct = async function (req, res) {
     if (!products) {
       return res.status(404).send({
         status: false,
-        message: "No product available on given userId",
+        message: "No product available with productId",
       });
     }
     return res

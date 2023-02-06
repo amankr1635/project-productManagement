@@ -16,7 +16,7 @@ const user = async function (req, res) {
   try {
     let data = req.body;
     if(Object.keys(data).length == 0 || !req.body){
-      return res.status(400).send({status: false, message:"please enter sometging in body"})
+      return res.status(400).send({status: false, message:"please enter something in body"})
     }
     if (req.files.length > 0) data.files = req.files;
     let keys = Object.keys(data);
@@ -28,16 +28,25 @@ const user = async function (req, res) {
           .send({ status: false, message: `${i} field is mandatory ` });
     }
     data.fname = data.fname.trim();
+    if(data.fname == "") return res
+    .status(400)
+    .send({ status: false, message: " fname can not be empty " });
     if (!isValidName(data.fname))
       return res
         .status(400)
         .send({ status: false, message: "fname is Invalid" });
     data.lname = data.lname.trim();
+    if(data.lname == "") return res
+    .status(400)
+    .send({ status: false, message: " lname can not be empty " });
     if (!isValidName(data.lname))
       return res
         .status(400)
         .send({ status: false, message: "lname is Invalid" });
     data.email = data.email.trim().toLowerCase();
+    if(data.email == "") return res
+    .status(400)
+    .send({ status: false, message: " email can not be empty " });
     if (!isValidEmail(data.email))
       return res
         .status(400)
@@ -49,6 +58,9 @@ const user = async function (req, res) {
           "Image format is Invalid please provide .jpg or .png or .jpeg format",
       });
     data.phone = data.phone.trim();
+    if(data.phone == "") return res
+    .status(400)
+    .send({ status: false, message: " phone can not be empty " });
     if (!isValidNo(data.phone))
       return res
         .status(400)
@@ -67,6 +79,9 @@ const user = async function (req, res) {
           .send({ status: false, message: "phone is already exist" });
     }
     data.password = data.password.trim();
+    if(data.password == "") return res
+    .status(400)
+    .send({ status: false, message: " password can not be empty " });
     if (!passwordVal(data.password))
       return res.status(400).send({
         status: false,
@@ -255,22 +270,32 @@ const updateUser = async function (req, res) {
         .send({ status: false, message: "please provide some data to update" });
     let userId = req.params.userId;
 
-    if (data.fname) {
+    
+    if (data.fname || data.fname == "") {
       data.fname = data.fname.trim();
+      if(data.fname == "") return res
+      .status(400)
+      .send({ status: false, message: " fname can not be empty " });
       if (!isValidName(data.fname))
         return res
           .status(400)
           .send({ status: false, message: "fname is Invalid" });
     }
-    if (data.lname) {
+    if (data.lname|| data.lname == "") {
       data.lname = data.lname.trim();
+      if(data.lname == "") return res
+    .status(400)
+    .send({ status: false, message: " lname can not be empty " });
       if (!isValidName(data.lname))
         return res
           .status(400)
           .send({ status: false, message: "lname is Invalid" });
     }
-    if (data.email) {
+    if (data.email||data.email == "") {
       data.email = data.email.trim().toLowerCase();
+      if(data.email == "") return res
+    .status(400)
+    .send({ status: false, message: " email can not be empty " });
       if (!isValidEmail(data.email))
         return res
           .status(400)
@@ -296,8 +321,11 @@ const updateUser = async function (req, res) {
       delete data.profileImage;
     }
 
-    if (data.phone) {
+    if (data.phone||data.phone == "") {
       data.phone = data.phone.trim();
+      if(data.phone == "") return res
+    .status(400)
+    .send({ status: false, message: " phone can not be empty " });
       if (!isValidNo(data.phone))
         return res
           .status(400)
@@ -318,8 +346,11 @@ const updateUser = async function (req, res) {
             .send({ status: false, message: "phone is already exist" });
       }
     }
-    if (data.password) {
+    if (data.password||data.password == "") {
       data.password = data.password.trim();
+      if(data.password == "") return res
+    .status(400)
+    .send({ status: false, message: " password can not be empty " });
       if (!passwordVal(data.password))
         return res.status(400).send({
           status: false,
@@ -331,14 +362,14 @@ const updateUser = async function (req, res) {
       data.password = hash;
     }
     if (data.address) {
-      let address;
-      JSON.parse(req.body.address)
-        .then((x) => (address = x))
-        .catch((err) => {
-          return res
-            .status(400)
-            .send({ status: false, message: "Invalid address passed" });
-        });
+      let address = JSON.parse(req.body.address)
+      // data.address = address
+        // .then((x) => (address = x))
+        // .catch((err) => {
+        //   return res
+        //     .status(400)
+        //     .send({ status: false, message: "Invalid address passed" });
+        // });
       let findData = await userModel.findById(userId);
       let address2 = findData.address;
 
