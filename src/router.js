@@ -4,7 +4,7 @@ const router = express.Router();
 const {user,login,getUser,updateUser} = require("./controllers/userController");
 const { product, getProductQuery, getProduct, updatProduct, deleteProduct } = require("./controllers/productController");
 const { authentication, authorization } = require("./middleware/middleware");
-const { createCart } = require("./controllers/cartController");
+const { createCart, updateCart } = require("./controllers/cartController");
 
 router.get("/test-me", function (req, res) {
   res.send({ test: "test-api" });
@@ -24,6 +24,7 @@ router.delete("/products/:productId",deleteProduct)
 
 
 router.post('/users/:userId/cart',authentication,authorization,createCart)
+router.put("/users/:userId/cart", updateCart)
 
 
 router.all("/*", function (req, res) { res.status(404).send({ status: false, msg: "Invalid HTTP request" }) })

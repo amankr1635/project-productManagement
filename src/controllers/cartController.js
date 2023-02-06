@@ -1,5 +1,5 @@
 const cartModel = require("../models/cartModel");
-const { isValidObjectId } = require("mongoose");
+const { isValidObjectId, default: mongoose } = require("mongoose");
 const productModel = require("../models/productModel");
 const { findOneAndUpdate } = require("../models/productModel");
 
@@ -93,5 +93,114 @@ const createCart = async function (req, res) {
   }
 };
 
+const updateCart = async function (req, res) {
+  let data = req.body;
+  if (Object.keys(data).length == 0)
+    return res
+      .status(400)
+      .send({ staus: false, message: "body can not be empty" });
+  if (!data.cartId)
+    return res
+      .status(400)
+      .send({ staus: false, message: "please enter cart id" });
+  data.cartId = data.cartId.trim();
+  if (data.cartId == "")
+    return res
+      .status(400)
+      .send({ staus: false, message: "cart id can not be empty" });
 
-module.exports = { createCart };
+  if (!data.productId)
+    return res
+      .status(400)
+      .send({ staus: false, message: "please enter product id" });
+  data.productId = data.productId.trim();
+  if (data.productId == "")
+    return res
+      .status(400)
+      .send({ staus: false, message: "product id can not be empty" });
+
+  // if(!data.removeProduct)return res.status(400).send({staus: false, message: "please enter removeProduct"})
+
+  if (!isValidObjectId(data.cartId))
+    return res
+      .status(400)
+      .send({ staus: false, message: "enter a valid cart id" });
+  if (!isValidObjectId(data.productId))
+    return res
+      .status(400)
+      .send({ staus: false, message: "enter a valid product id" });
+  let checkCart = await cartModel.findOne({ _id: data.cartId });
+  if (!checkCart)
+    return res
+      .status(400)
+      .send({ staus: false, message: "cart does not exist" });
+  let product = await productModel.findOne({
+    _id: data.productId,
+    isDeleted: false,
+  });
+  if (!product)
+    return res
+      .status(400)
+      .send({ staus: false, message: "product does not exist" });
+
+  if (Number(data.removeProduct) != 1 && Number(data.removeProduct) != 0)
+    return res
+      .status(400)
+      .send({ staus: false, message: "removeProduct can only be 1 or 0" });
+
+  let obj = {};
+  let arr = [...checkCart.items];
+  if (data.removeProduct == 1) {
+    let flag = false;
+    for (let j = 0; j < arr.length; j++) {
+      if (arr[j].productId == data.productId) {
+        if (arr[j]["quantity"] == 1) {
+          arr.splice(j, 1);
+          obj.totalItems = checkCart.totalItems - 1;
+          obj.totalPrice = checkCart.totalPrice - product.price;
+          flag = true;
+        } else {
+          flag = true;
+          arr[j]["quantity"] -= 1;
+          obj.totalPrice = checkCart.totalPrice - product.price;
+        }
+      }
+    }
+    if (!flag) {
+      return res
+        .status(400)
+        .send({
+          status: false,
+          message: "no product available with this product id in your cart",
+        });
+    }
+    obj.items = arr;
+  }
+  if (data.removeProduct == 0) {
+    let flag = false;
+    for (let j = 0; j < arr.length; j++) {
+      if (arr[j].productId == data.productId) {
+        obj.totalItems = checkCart.totalItems - 1;
+        obj.totalPrice =
+          checkCart.totalPrice - product.price * arr[j]["quantity"];
+        arr.splice(j, 1);
+        flag = true;
+      }
+    }
+    if (!flag)
+      return res
+        .status(400)
+        .send({
+          status: false,
+          message: "no product available with this product id in your cart",
+        });
+    obj.items = arr;
+  }
+  let update = await cartModel.findOneAndUpdate({ _id: data.cartId }, obj, {
+    new: true,
+  });
+  return res
+    .status(200)
+    .send({ status: true, message: "updated", data: update });
+};
+module.exports = { createCart, updateCart };
