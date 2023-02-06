@@ -21,7 +21,9 @@ router.get("/products",getProductQuery)
 router.get("/products/:productId",getProduct)
 router.put('/products/:productId',updatProduct)
 router.delete("/products/:productId",deleteProduct)
-router.post('/users/:userId/cart',createCart)
+
+
+router.post('/users/:userId/cart',authentication,authorization,createCart)
 
 
 router.all("/*", function (req, res) { res.status(404).send({ status: false, msg: "Invalid HTTP request" }) })
