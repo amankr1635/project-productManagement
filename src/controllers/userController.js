@@ -10,17 +10,28 @@ const {
   passwordVal,
   isValidImage,
   isValidString,
+  isValidAddress,
 } = require("../validations/validation");
 
 const user = async function (req, res) {
   try {
     let data = req.body;
-    if(Object.keys(data).length == 0 || !req.body){
-      return res.status(400).send({status: false, message:"please enter something in body"})
+    if (Object.keys(data).length == 0 || !req.body) {
+      return res
+        .status(400)
+        .send({ status: false, message: "please enter something in body" });
     }
     if (req.files.length > 0) data.files = req.files;
     let keys = Object.keys(data);
-    let dataArr = ["fname","lname","email","files","phone","password","address"];
+    let dataArr = [
+      "fname",
+      "lname",
+      "email",
+      "files",
+      "phone",
+      "password",
+      "address",
+    ];
     for (let i of dataArr) {
       if (!keys.includes(i))
         return res
@@ -28,25 +39,28 @@ const user = async function (req, res) {
           .send({ status: false, message: `${i} field is mandatory ` });
     }
     data.fname = data.fname.trim();
-    if(data.fname == "") return res
-    .status(400)
-    .send({ status: false, message: " fname can not be empty " });
+    if (data.fname == "")
+      return res
+        .status(400)
+        .send({ status: false, message: " fname can not be empty " });
     if (!isValidName(data.fname))
       return res
         .status(400)
         .send({ status: false, message: "fname is Invalid" });
     data.lname = data.lname.trim();
-    if(data.lname == "") return res
-    .status(400)
-    .send({ status: false, message: " lname can not be empty " });
+    if (data.lname == "")
+      return res
+        .status(400)
+        .send({ status: false, message: " lname can not be empty " });
     if (!isValidName(data.lname))
       return res
         .status(400)
         .send({ status: false, message: "lname is Invalid" });
     data.email = data.email.trim().toLowerCase();
-    if(data.email == "") return res
-    .status(400)
-    .send({ status: false, message: " email can not be empty " });
+    if (data.email == "")
+      return res
+        .status(400)
+        .send({ status: false, message: " email can not be empty " });
     if (!isValidEmail(data.email))
       return res
         .status(400)
@@ -58,9 +72,10 @@ const user = async function (req, res) {
           "Image format is Invalid please provide .jpg or .png or .jpeg format",
       });
     data.phone = data.phone.trim();
-    if(data.phone == "") return res
-    .status(400)
-    .send({ status: false, message: " phone can not be empty " });
+    if (data.phone == "")
+      return res
+        .status(400)
+        .send({ status: false, message: " phone can not be empty " });
     if (!isValidNo(data.phone))
       return res
         .status(400)
@@ -79,15 +94,21 @@ const user = async function (req, res) {
           .send({ status: false, message: "phone is already exist" });
     }
     data.password = data.password.trim();
-    if(data.password == "") return res
-    .status(400)
-    .send({ status: false, message: " password can not be empty " });
+    if (data.password == "")
+      return res
+        .status(400)
+        .send({ status: false, message: " password can not be empty " });
     if (!passwordVal(data.password))
       return res.status(400).send({
         status: false,
         message:
           "Password must be at least 1 lowercase, at least 1 uppercase,contain at least 1 numeric character , at least one special character, range between 8-15",
       });
+
+    if (!isValidAddress(data.address))
+      return res
+        .status(400)
+        .send({ status: false, message: "invalid address format" });
 
     let address = JSON.parse(req.body.address);
 
@@ -167,7 +188,7 @@ const user = async function (req, res) {
       let uploadedFileURL = await uploadFile(data.files[0]);
       data.profileImage = uploadedFileURL;
     } else {
-      return res.status(400).send({ msg: "No file found" });
+      return res.status(400).send({ status: false, message: "No file found" });
     }
     let hash = await bcrypt.hash(data.password, saltRounds);
     data.password = hash;
@@ -178,7 +199,7 @@ const user = async function (req, res) {
       data: createUser,
     });
   } catch (error) {
-    return res.status(500).send({ status: false, error: error.message });
+    return res.status(500).send({ status: false, message: error.message });
   }
 };
 
@@ -188,38 +209,50 @@ const login = async function (req, res) {
     if (Object.keys(data).length == 0)
       return res
         .status(400)
-        .send({ status: false, msg: "please provide mandatory fields" });
+        .send({ status: false, message: "please provide mandatory fields" });
     let { email, password } = data;
 
     if (!email)
       return res
         .status(400)
         .send({ status: false, message: "please provide email" });
-    data.email = data.email.trim().toLowerCase();
+    email = email.trim().toLowerCase();
+    if (email == "")
+      return res
+        .status(400)
+        .send({ status: false, message: "email cann't be empty" });
     if (!isValidEmail(email))
       return res.status(400).send({ status: false, message: "Invalid email" });
-
     if (!password)
       return res
         .status(400)
-        .send({ status: false, msg: "please provide password" });
+        .send({ status: false, message: "please provide password" });
+    password = password.trim().toLowerCase();
+
+    if (password == "")
+      return res
+        .status(400)
+        .send({ status: false, message: "password cann't be empty" });
     if (!isValidString(password))
       return res.status(400).send({
         status: false,
-        msg: "please provide valid password in string",
+        message: "please provide valid password in string",
       });
     password = password.trim();
 
     if (Object.keys(data).length > 2)
       return res
         .status(400)
-        .send({ status: false, msg: "only provide email and password field" });
+        .send({
+          status: false,
+          message: "only provide email and password field",
+        });
 
     let userData = await userModel.findOne({ email: email, isDeleted: false });
     if (!userData)
       return res
         .status(404)
-        .send({ status: false, msg: "no user found with this email" });
+        .send({ status: false, message: "no user found with this email" });
 
     bcrypt.compare(data.password, userData.password, (err, pass) => {
       if (err) {
@@ -245,20 +278,24 @@ const login = async function (req, res) {
       }
     });
   } catch (error) {
-    return res.status(500).send({ status: false, error: error.message });
+    return res.status(500).send({ status: false, message: error.message });
   }
 };
 
 const getUser = async function (req, res) {
-  let userId = req.params.userId;
+  try {
+    let userId = req.params.userId;
 
-  let user = await userModel.findOne({ _id: userId });
-  if (!user)
-    return res.status(404).send({ status: false, message: "user not found" });
+    let user = await userModel.findOne({ _id: userId });
+    if (!user)
+      return res.status(404).send({ status: false, message: "user not found" });
 
-  return res
-    .status(200)
-    .send({ status: true, message: "User profile details", data: user });
+    return res
+      .status(200)
+      .send({ status: true, message: "User profile details", data: user });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
 };
 
 const updateUser = async function (req, res) {
@@ -270,40 +307,45 @@ const updateUser = async function (req, res) {
         .send({ status: false, message: "please provide some data to update" });
     let userId = req.params.userId;
 
-    
     if (data.fname || data.fname == "") {
       data.fname = data.fname.trim();
-      if(data.fname == "") return res
-      .status(400)
-      .send({ status: false, message: " fname can not be empty " });
+      if (data.fname == "")
+        return res
+          .status(400)
+          .send({ status: false, message: " fname can not be empty " });
       if (!isValidName(data.fname))
         return res
           .status(400)
           .send({ status: false, message: "fname is Invalid" });
     }
-    if (data.lname|| data.lname == "") {
+    if (data.lname || data.lname == "") {
       data.lname = data.lname.trim();
-      if(data.lname == "") return res
-    .status(400)
-    .send({ status: false, message: " lname can not be empty " });
+      if (data.lname == "")
+        return res
+          .status(400)
+          .send({ status: false, message: " lname can not be empty " });
       if (!isValidName(data.lname))
         return res
           .status(400)
           .send({ status: false, message: "lname is Invalid" });
     }
-    if (data.email||data.email == "") {
+    if (data.email || data.email == "") {
       data.email = data.email.trim().toLowerCase();
-      if(data.email == "") return res
-    .status(400)
-    .send({ status: false, message: " email can not be empty " });
+      if (data.email == "")
+        return res
+          .status(400)
+          .send({ status: false, message: " email can not be empty " });
       if (!isValidEmail(data.email))
         return res
           .status(400)
           .send({ status: false, message: "email is Invalid" });
     }
-    
-    if(req.body.profileImage == "") {
-      if (req.files.length === 0) return res.status(400).send({ status: false, message: "profileImage cannot be empty" })
+
+    if (req.body.profileImage == "") {
+      if (req.files.length === 0)
+        return res
+          .status(400)
+          .send({ status: false, message: "profileImage cannot be empty" });
     }
 
     if (req.files && req.files.length > 0) {
@@ -318,17 +360,18 @@ const updateUser = async function (req, res) {
         let uploadedFileURL = await uploadFile(data.files[0]);
         data.profileImage = uploadedFileURL;
       } else {
-        return res.status(400).send({ msg: "No file found" });
+        return res.status(400).send({ message: "No file found" });
       }
     } else {
       delete data.profileImage;
     }
 
-    if (data.phone||data.phone == "") {
+    if (data.phone || data.phone == "") {
       data.phone = data.phone.trim();
-      if(data.phone == "") return res
-    .status(400)
-    .send({ status: false, message: " phone can not be empty " });
+      if (data.phone == "")
+        return res
+          .status(400)
+          .send({ status: false, message: " phone can not be empty " });
       if (!isValidNo(data.phone))
         return res
           .status(400)
@@ -349,11 +392,12 @@ const updateUser = async function (req, res) {
             .send({ status: false, message: "phone is already exist" });
       }
     }
-    if (data.password||data.password == "") {
+    if (data.password || data.password == "") {
       data.password = data.password.trim();
-      if(data.password == "") return res
-    .status(400)
-    .send({ status: false, message: " password can not be empty " });
+      if (data.password == "")
+        return res
+          .status(400)
+          .send({ status: false, message: " password can not be empty " });
       if (!passwordVal(data.password))
         return res.status(400).send({
           status: false,
@@ -365,14 +409,12 @@ const updateUser = async function (req, res) {
       data.password = hash;
     }
     if (data.address) {
-      let address = JSON.parse(req.body.address)
-      // data.address = address
-        // .then((x) => (address = x))
-        // .catch((err) => {
-        //   return res
-        //     .status(400)
-        //     .send({ status: false, message: "Invalid address passed" });
-        // });
+      if (!isValidAddress(data.address))
+        return res
+          .status(400)
+          .send({ status: false, message: "invalid address format" });
+      let address = JSON.parse(req.body.address);
+
       let findData = await userModel.findById(userId);
       let address2 = findData.address;
 
@@ -418,6 +460,7 @@ const updateUser = async function (req, res) {
       data.address = address2;
     }
     let update = await userModel.findByIdAndUpdate(userId, data, { new: true });
+
     if (!update)
       return res
         .status(400)
@@ -426,7 +469,7 @@ const updateUser = async function (req, res) {
       .status(200)
       .send({ status: true, message: "User profile updated", data: update });
   } catch (error) {
-    return res.status(500).send({ status: false, error: error.message });
+    return res.status(500).send({ status: false, message: error.message });
   }
 };
 

@@ -34,8 +34,7 @@ const isValidDecimal = function(number){
 }
 
 const isValidNo = function (number) {
-  const validnumber = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/
-  // /^[6-9]\d{9}$/;
+  const validnumber = /^[6789]\d{9}$/
   return validnumber.test(number);
 };
 const isValidPin = function (pincode) {
@@ -49,8 +48,29 @@ const isValidString = function (input) {
   if (typeof input == "string" && input.trim().length == 0) {
     return false;
   }
-
   return true;
 };
 
-module.exports = {isValidEmail,passwordVal,isValidName,isValidTitle,isValidNo,isValidDecimal,isValidPin,isValidString,isValidImage};
+const isValidAddress = function(a){
+  let arr =[]
+  if(a[0]!="{"&& a[a.length-1]!="}")
+  return false
+  for(let i =0 ;i<a.length; i++){
+    if(a[i]=="{" ||a[i]=="(" ||a[i]=="[") {
+      arr.push(a[i]) 
+    }else{
+      if(arr.length==0){
+        return false
+      }
+      if(a[i]=="}"&&arr[arr.length-1]=="{"||a[i]==")"&&arr[arr.length-1]=="("||a[i]=="]"&&arr[arr.length-1]=="["){
+        arr.pop()
+      }
+
+    }
+  }
+  if(arr.length ==0)return true
+  return false
+}
+
+
+module.exports = {isValidEmail,passwordVal,isValidName,isValidTitle,isValidNo,isValidDecimal,isValidPin,isValidString,isValidImage,isValidAddress};

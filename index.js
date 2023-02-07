@@ -13,7 +13,7 @@ app.use(multer().any());
 mongoose.set("strictQuery", true);
 mongoose
   .connect(
-    "mongodb+srv://product05:rWxRNvyBP8Ci1wPV@productdb.twut47t.mongodb.net/group06Database"
+    "mongodb+srv://product05:rWxRNvyBP8Ci1wPV@productdb.twut47t.mongodb.net/group05Database"
   )
   .then(() => console.log("mongo Db is connected"))
   .catch((err) => console.log(err));

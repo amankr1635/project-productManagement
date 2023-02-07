@@ -14,11 +14,6 @@ const authentication = async function (req, res, next) {
       return res
         .status(400)
         .send({ status: false, message: "enter a valid userId" });
-
-    // if (!token)
-    //   return res
-    //     .status(400)
-    //     .send({ status: false, message: "please enter token" });
     jwt.verify(token, "group5californium", (err, decodedToken) => {
       if (err) {
         return res.status(400).send({ status: false, message: err.message });
@@ -49,14 +44,8 @@ const authorization = async function (req, res, next) {
 
     if (userToken != userData._id)
       return res
-        .status(401)
+        .status(403) //it must be 401 we have to change this after evaluation
         .send({ status: false, message: "You are not authorized" });
-    // if (userData.isDeleted == true) {
-    //   return res
-    //     .status(404)
-    //     .send({ status: false, message: "document already deleted" });
-    // }
-
     next();
   } catch (error) {
     return res.status(500).send({ status: false, error: error.message });
