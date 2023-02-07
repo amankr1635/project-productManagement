@@ -246,7 +246,7 @@ Send [form-data](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
   - _**On success**_ - Return HTTP status 200. The response should be a JSON object like [this](#successful-response-structure)
   - _**On error**_ - Return a suitable error message with a valid HTTP status code. The response should be a JSON object like [this](#error-response-structure)
 
-
+// if product is daleted do we have to remove product from carts
 
 ## FEATURE III - Cart
 ### Models
