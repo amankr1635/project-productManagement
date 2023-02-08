@@ -1,8 +1,7 @@
 const cartModel = require("../models/cartModel");
 const { isValidObjectId, default: mongoose } = require("mongoose");
 const productModel = require("../models/productModel");
-const { findOneAndUpdate } = require("../models/productModel");
-const userModel = require("../models/userModel");
+
 
 const createCart = async function (req, res) {
   try {
@@ -228,9 +227,9 @@ const getCart = async function (req, res) {
         .status(400)
         .send({ status: false, message: "please enter valid cartId" });
 
-    let checkUser = await userModel.findOne({ _id: userId });
-    if (!checkUser)
-      return res.status(404).send({ status: false, message: "No user found" });
+    // let checkUser = await userModel.findOne({ _id: userId });
+    // if (!checkUser)
+    //   return res.status(404).send({ status: false, message: "No user found" });
 
     let checkCart = await cartModel.findOne({
       _id: data.cartId,
@@ -265,9 +264,9 @@ const deleteCart = async function (req, res) {
       return res
         .status(400)
         .send({ status: false, message: "please enter valid cartId" });
-    let checkUser = await userModel.findOne({ _id: userId });
-    if (!checkUser)
-      return res.status(404).send({ status: false, message: "No user found" });
+    // let checkUser = await userModel.findOne({ _id: userId });
+    // if (!checkUser)
+    //   return res.status(404).send({ status: false, message: "No user found" });
     let checkAvailableCart = await cartModel.findOne({
       _id: data.cartId,
       userId: userId,
