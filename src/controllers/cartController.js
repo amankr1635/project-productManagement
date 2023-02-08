@@ -34,7 +34,7 @@ const createCart = async function (req, res) {
     if (!checkProduct)
       return res
         .status(404)
-        .send({ status: false, message: "product doesn't exist" }); //------change status code
+        .send({ status: false, message: "product doesn't exist" }); 
 
     if (!checkUserInCart) {
       data.userId = req.params.userId;
@@ -84,7 +84,7 @@ const createCart = async function (req, res) {
         { new: true }
       );
       return res
-        .status(200)  // ask to mam for status code
+        .status(200)
         .send({ status: true, message: "Success", data: updateCart });
     }
   } catch (error) {
@@ -264,9 +264,6 @@ const deleteCart = async function (req, res) {
       return res
         .status(400)
         .send({ status: false, message: "please enter valid cartId" });
-    // let checkUser = await userModel.findOne({ _id: userId });
-    // if (!checkUser)
-    //   return res.status(404).send({ status: false, message: "No user found" });
     let checkAvailableCart = await cartModel.findOne({
       _id: data.cartId,
       userId: userId,

@@ -5,7 +5,7 @@ const {user,login,getUser,updateUser} = require("./controllers/userController");
 const { product, getProductQuery, getProduct, updatProduct, deleteProduct } = require("./controllers/productController");
 const { authentication, authorization } = require("./middleware/middleware");
 const { createCart, updateCart, getCart, deleteCart } = require("./controllers/cartController");
-const { createOrder } = require("./controllers/orderController");
+const { createOrder, updateOrder } = require("./controllers/orderController");
 
 router.get("/test-me", function (req, res) {
   res.send({ test: "test-api" });
@@ -36,6 +36,7 @@ router.delete("/users/:userId/cart",authentication,authorization, deleteCart)
 // *===========Orders APIs============*
 
 router.post('/users/:userId/orders',authentication,authorization, createOrder)
+router.put('/users/:userId/orders',authentication,authorization, updateOrder)
 
 
 
