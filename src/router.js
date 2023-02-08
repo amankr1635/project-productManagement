@@ -5,6 +5,7 @@ const {user,login,getUser,updateUser} = require("./controllers/userController");
 const { product, getProductQuery, getProduct, updatProduct, deleteProduct } = require("./controllers/productController");
 const { authentication, authorization } = require("./middleware/middleware");
 const { createCart, updateCart, getCart, deleteCart } = require("./controllers/cartController");
+const { createOrder } = require("./controllers/orderController");
 
 router.get("/test-me", function (req, res) {
   res.send({ test: "test-api" });
@@ -31,6 +32,11 @@ router.post('/users/:userId/cart',authentication,authorization,createCart)
 router.put("/users/:userId/cart",authentication,authorization, updateCart)
 router.get('/users/:userId/cart',authentication,authorization,getCart)
 router.delete("/users/:userId/cart",authentication,authorization, deleteCart)
+
+// *===========Orders APIs============*
+
+router.post('/users/:userId/orders',authentication,authorization, createOrder)
+
 
 
 router.all("/*", function (req, res) { res.status(404).send({ status: false, msg: "Invalid HTTP request" }) })

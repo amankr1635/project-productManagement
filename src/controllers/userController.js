@@ -223,23 +223,15 @@ const login = async function (req, res) {
         .send({ status: false, message: "email cann't be empty" });
     if (!isValidEmail(email))
       return res.status(400).send({ status: false, message: "Invalid email" });
-    if (!password)
+      if (!password)
       return res
-        .status(400)
-        .send({ status: false, message: "please provide password" });
-    password = password.trim().toLowerCase();
-
-    if (password == "")
-      return res
+      .status(400)
+      .send({ status: false, message: "please provide password" });
+      password = password.toString().trim();
+        if (password == "")
+        return res
         .status(400)
         .send({ status: false, message: "password cann't be empty" });
-    if (!isValidString(password))
-      return res.status(400).send({
-        status: false,
-        message: "please provide valid password in string",
-      });
-    password = password.trim();
-
     if (Object.keys(data).length > 2)
       return res
         .status(400)
@@ -254,7 +246,7 @@ const login = async function (req, res) {
         .status(404)
         .send({ status: false, message: "no user found with this email" });
 
-    bcrypt.compare(data.password, userData.password, (err, pass) => {
+    bcrypt.compare(password, userData.password, (err, pass) => {
       if (err) {
         throw err;
       }
