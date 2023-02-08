@@ -44,7 +44,7 @@ const authorization = async function (req, res, next) {
 
     if (userToken != userData._id)
       return res
-        .status(403) //it must be 401 we have to change this after evaluation
+        .status(403)
         .send({ status: false, message: "You are not authorized" });
     next();
   } catch (error) {

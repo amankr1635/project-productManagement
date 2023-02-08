@@ -1,17 +1,25 @@
 const { default: mongoose } = require("mongoose");
 const productModel = require("../models/productModel");
 const uploadFile = require("../aws/aws");
-const {isValidTitle,isValidImage} = require("../validations/validation");
+const { isValidTitle, isValidImage } = require("../validations/validation");
 
 const product = async function (req, res) {
   try {
     let data = req.body;
-    if(Object.keys(data).length == 0 || !req.body){
-      return res.status(400).send({status: false, message:"please enter something in body"})
+    if (Object.keys(data).length == 0 || !req.body) {
+      return res
+        .status(400)
+        .send({ status: false, message: "please enter something in body" });
     }
     data.files = req.files;
     let entries = Object.entries(data);
-    let dataArr = ["title","description","price","currencyId","currencyFormat"];
+    let dataArr = [
+      "title",
+      "description",
+      "price",
+      "currencyId",
+      "currencyFormat",
+    ];
     for (let i = 0; i < dataArr.length; i++) {
       let flag = false;
       let k = 0;
@@ -54,12 +62,10 @@ const product = async function (req, res) {
             message: `${entries[j][k]} field cannot be empty `,
           });
         if (!Number(entries[j][1])) {
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `${entries[j][k]} can only be a number and can not be 0 `,
-            });
+          return res.status(400).send({
+            status: false,
+            message: `${entries[j][k]} can only be a number and can not be 0 `,
+          });
         }
       }
       if (entries[j][k] == "currencyId") {
@@ -88,6 +94,12 @@ const product = async function (req, res) {
             .send({ status: false, message: `${entries[j][k]} must be '₹' ` });
       }
     }
+    if (data.isDeleted) {
+      delete data.isDeleted;
+    }
+    if (data.deletedAt) {
+      delete data.deletedAt;
+    }
     if (data.files[0] && !isValidImage(data.files[0].originalname))
       return res.status(400).send({
         status: false,
@@ -99,7 +111,7 @@ const product = async function (req, res) {
       if (data.style == "")
         return res
           .status(400)
-          .send({ status: false, message: "Enter value for style field" }); //delete data.style
+          .send({ status: false, message: "Enter value for style field" });
     }
 
     if (data.installments || data.installments == "") {
@@ -119,7 +131,7 @@ const product = async function (req, res) {
     let arr = [];
     let sizes;
     if (data.availableSizes) {
-      data.availableSizes = data.availableSizes.trim()
+      data.availableSizes = data.availableSizes.trim();
       sizes = data.availableSizes.split(",");
       let availableSizesEnum = productModel.schema.obj.availableSizes.enum;
       sizes.forEach((a) => {
@@ -163,8 +175,7 @@ const getProductQuery = async function (req, res) {
         .status(200)
         .send({ status: true, message: "Success", data: data });
     } else {
-
-      let obj = {}
+      let obj = {};
       let availableSizesEnum = productModel.schema.obj.availableSizes.enum;
       if (data.size || data.size == "") {
         data.availableSizes = data.size.trim();
@@ -178,7 +189,7 @@ const getProductQuery = async function (req, res) {
             status: false,
             message: `Enter a valid Size from ${availableSizesEnum}`,
           });
-          obj.availableSizes = data.size
+        obj.availableSizes = data.size;
       }
       if (data.title || data.title == "") {
         data.title = data.title.trim();
@@ -187,28 +198,27 @@ const getProductQuery = async function (req, res) {
             .status(400)
             .send({ status: false, message: "Name field can not be empty" });
       }
-      if(data.title){
+      if (data.title) {
         if (Number(data.title))
-        return res.status(400).send({
-          status: false,
-          message: "Name can not contain numbers only",
-        });
+          return res.status(400).send({
+            status: false,
+            message: "Name can not contain numbers only",
+          });
         if (!isValidTitle(data.title))
-        return res
-        .status(400)
-        .send({ status: false, message: "Name is Invalid" });
-        obj.title = data.title
+          return res
+            .status(400)
+            .send({ status: false, message: "Name is Invalid" });
+        obj.title = data.title;
       }
       let num;
       if (req.query.priceSort) {
         num = req.query.priceSort;
-        if (num !== "-1" && num !== "1" )
+        if (num !== "-1" && num !== "1")
           return res.status(400).send({
             status: false,
             message: "Please enter -1 or 1 for price sorting",
           });
-          obj.priceSort = num
-
+        obj.priceSort = num;
       }
       if (req.query.priceGreaterThan && req.query.priceLessThan) {
         req.query.priceGreaterThan = req.query.priceGreaterThan.trim();
@@ -251,7 +261,10 @@ const getProductQuery = async function (req, res) {
             .send({ status: false, message: "Enter price in Number" });
         obj.$and = [{ price: { $lte: req.query.priceLessThan } }];
       }
-      if(Object.keys(obj).length==0) return res.status(400).send({status: false, message:"please pass valid data"})
+      if (Object.keys(obj).length == 0)
+        return res
+          .status(400)
+          .send({ status: false, message: "please pass valid data" });
       let product = await productModel
         .find({ isDeleted: false, ...obj })
         .sort({ price: num });
@@ -259,7 +272,9 @@ const getProductQuery = async function (req, res) {
         return res
           .status(404)
           .send({ status: false, message: "no product found" });
-      return res.status(200).send({ status: true,message: "Success" ,data: product });
+      return res
+        .status(200)
+        .send({ status: true, message: "Success", data: product });
     }
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -308,11 +323,22 @@ const updatProduct = async function (req, res) {
       data.files = req.files;
     }
     let keys = Object.keys(data);
-    let arr = ["title","description","price","currencyId","currencyFormat","isFreeShipping","productImage","files","style","availableSizes","installments"];
+    let arr = [
+      "title",
+      "description",
+      "price",
+      "currencyId",
+      "currencyFormat",
+      "isFreeShipping",
+      "productImage",
+      "files",
+      "style",
+      "availableSizes",
+      "installments",
+    ];
     for (let i = 0; i < keys.length; i++) {
       if (!arr.includes(keys[i])) {
         delete data[keys[i]];
-        
       } else {
         if (keys[i] == "title") {
           data.title = data.title.trim();
@@ -389,15 +415,16 @@ const updatProduct = async function (req, res) {
               message: `${keys[i]} field cannot be empty `,
             });
           if (data.isFreeShipping != "true" && data.isFreeShipping != "false")
+            return res.status(400).send({
+              status: false,
+              message: `${keys[i]} must be 'true' or 'false `,
+            });
+        }
+        if (req.body.productImage == "") {
+          if (req.files.length === 0)
             return res
               .status(400)
-              .send({
-                status: false,
-                message: `${keys[i]} must be 'true' or 'false `,
-              });
-        }
-        if(req.body.productImage == "") {
-          if (req.files.length === 0) return res.status(400).send({ status: false, message: "productImage cannot be empty" })
+              .send({ status: false, message: "productImage cannot be empty" });
         }
         if (keys[i] == "files") {
           if (data.files[0] && !isValidImage(data.files[0].originalname))
@@ -441,12 +468,10 @@ const updatProduct = async function (req, res) {
             }
           });
           if (!flag)
-            return res
-              .status(400)
-              .send({
-                status: false,
-                message: `Give valid Sizes between ${availableSizesEnum}`,
-              });
+            return res.status(400).send({
+              status: false,
+              message: `Give valid Sizes between ${availableSizesEnum}`,
+            });
           delete data.availableSizes;
           data.$addToSet = { availableSizes: arr };
         }
@@ -459,7 +484,10 @@ const updatProduct = async function (req, res) {
           });
       }
     }
-    if(Object.keys(data).length== 0) return res.status(400).send({ status: false, message: "you can not update this feild" });
+    if (Object.keys(data).length == 0)
+      return res
+        .status(400)
+        .send({ status: false, message: "you can not update this feild" });
     let update = await productModel.findOneAndUpdate(
       { _id: productId, isDeleted: false },
       data,
@@ -469,7 +497,9 @@ const updatProduct = async function (req, res) {
       return res
         .status(404)
         .send({ status: false, message: "productId does not exist" });
-    return res.status(200).send({ status: true, message: "Success", data: update });
+    return res
+      .status(200)
+      .send({ status: true, message: "Success", data: update });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -492,12 +522,16 @@ const deleteProduct = async function (req, res) {
         .status(404)
         .send({ status: false, message: "Product not found" });
 
-    return res
-      .status(200)
-      .send({ status: false, message: "Success" });
+    return res.status(200).send({ status: false, message: "Success" });
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
   }
 };
 
-module.exports = {product,getProductQuery,getProduct,updatProduct,deleteProduct};
+module.exports = {
+  product,
+  getProductQuery,
+  getProduct,
+  updatProduct,
+  deleteProduct,
+};

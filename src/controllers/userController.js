@@ -223,22 +223,20 @@ const login = async function (req, res) {
         .send({ status: false, message: "email cann't be empty" });
     if (!isValidEmail(email))
       return res.status(400).send({ status: false, message: "Invalid email" });
-      if (!password)
+    if (!password)
       return res
-      .status(400)
-      .send({ status: false, message: "please provide password" });
-      password = password.toString().trim();
-        if (password == "")
-        return res
+        .status(400)
+        .send({ status: false, message: "please provide password" });
+    password = password.toString().trim();
+    if (password == "")
+      return res
         .status(400)
         .send({ status: false, message: "password cann't be empty" });
     if (Object.keys(data).length > 2)
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "only provide email and password field",
-        });
+      return res.status(400).send({
+        status: false,
+        message: "only provide email and password field",
+      });
 
     let userData = await userModel.findOne({ email: email, isDeleted: false });
     if (!userData)
@@ -293,12 +291,12 @@ const getUser = async function (req, res) {
 const updateUser = async function (req, res) {
   try {
     let data = req.body;
+    let obj = {};
     if (Object.keys(data).length == 0 && !req.files)
       return res
         .status(400)
         .send({ status: false, message: "please provide some data to update" });
     let userId = req.params.userId;
-
     if (data.fname || data.fname == "") {
       data.fname = data.fname.trim();
       if (data.fname == "")
@@ -309,6 +307,7 @@ const updateUser = async function (req, res) {
         return res
           .status(400)
           .send({ status: false, message: "fname is Invalid" });
+      obj.fname = data.fname;
     }
     if (data.lname || data.lname == "") {
       data.lname = data.lname.trim();
@@ -320,6 +319,7 @@ const updateUser = async function (req, res) {
         return res
           .status(400)
           .send({ status: false, message: "lname is Invalid" });
+      obj.lname = data.lname;
     }
     if (data.email || data.email == "") {
       data.email = data.email.trim().toLowerCase();
@@ -331,6 +331,7 @@ const updateUser = async function (req, res) {
         return res
           .status(400)
           .send({ status: false, message: "email is Invalid" });
+      obj.email = data.email;
     }
 
     if (req.body.profileImage == "") {
@@ -350,7 +351,7 @@ const updateUser = async function (req, res) {
         });
       if (data.files && data.files.length > 0) {
         let uploadedFileURL = await uploadFile(data.files[0]);
-        data.profileImage = uploadedFileURL;
+        obj.profileImage = uploadedFileURL;
       } else {
         return res.status(400).send({ message: "No file found" });
       }
@@ -368,13 +369,14 @@ const updateUser = async function (req, res) {
         return res
           .status(400)
           .send({ status: false, message: "phone number is Invalid" });
+      obj.phone = data.phone;
     }
-    if (data.email || data.phone) {
+    if (obj.email || obj.phone) {
       let userExist = await userModel.find({
-        $or: [{ email: data.email }, { phone: data.phone }],
+        $or: [{ email: obj.email }, { phone: obj.phone }],
       });
       if (userExist.length >= 1) {
-        if (data.email == userExist[0].email) {
+        if (obj.email == userExist[0].email) {
           return res
             .status(400)
             .send({ status: false, message: "email is already exist" });
@@ -398,7 +400,7 @@ const updateUser = async function (req, res) {
         });
       const saltRounds = data.password.length;
       let hash = await bcrypt.hash(data.password, saltRounds);
-      data.password = hash;
+      obj.password = hash;
     }
     if (data.address) {
       if (!isValidAddress(data.address))
@@ -440,7 +442,6 @@ const updateUser = async function (req, res) {
             address2.billing.city = address.billing.city;
         }
         if (address.billing.pincode) {
-          // address.billing.pincode = address.billing.pincode.toString()
           if (!isValidPin(address.billing.pincode))
             return res.status(400).send({
               status: false,
@@ -449,9 +450,13 @@ const updateUser = async function (req, res) {
           address2.billing.pincode = address.billing.pincode;
         }
       }
-      data.address = address2;
+      obj.address = address2;
     }
-    let update = await userModel.findByIdAndUpdate(userId, data, { new: true });
+    if (Object.keys(obj).length == 0)
+      return res
+        .status(400)
+        .send({ status: false, message: "KON HAI YE LOG, KHA SE AATE HAI" });
+    let update = await userModel.findByIdAndUpdate(userId, obj, { new: true });
 
     if (!update)
       return res

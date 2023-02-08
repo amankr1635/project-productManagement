@@ -55,7 +55,11 @@ const isValidAddress = function(a){
   let arr =[]
   if(a[0]!="{"&& a[a.length-1]!="}")
   return false
+  let count = 0
   for(let i =0 ;i<a.length; i++){
+    if(a[i]==`"`){
+      count++
+    }
     if(a[i]=="{" ||a[i]=="(" ||a[i]=="[") {
       arr.push(a[i]) 
     }else{
@@ -67,6 +71,9 @@ const isValidAddress = function(a){
       }
 
     }
+  }
+  if(count%2 !=0){
+    return false
   }
   if(arr.length ==0)return true
   return false

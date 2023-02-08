@@ -99,12 +99,10 @@ const updateOrder = async function (req, res) {
         .send({ status: false, message: "status cannot be empty" });
 
     if (!["completed", "cancelled"].includes(data.status))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "status can be only completed,cancelled",
-        });
+      return res.status(400).send({
+        status: false,
+        message: "status can be only completed,cancelled",
+      });
 
     let orders = await orderModel.findOne({ _id: data.orderId });
     if (!orders)
