@@ -30,6 +30,7 @@ const createOrder = async function (req, res) {
       return res
         .status(400)
         .send({ status: false, message: "your cart is empty" });
+        
 
     let obj = {};
     obj.userId = req.params.userId;
@@ -133,8 +134,7 @@ const updateOrder = async function (req, res) {
       { status: data.status },
       { new: true }
     );
-
-    return res
+     return res
       .status(200)
       .send({ status: false, message: "Success", data: updatedData });
   } catch (error) {
