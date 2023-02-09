@@ -40,7 +40,7 @@ const createCart = async function (req, res) {
       data.items = [{ productId: data.productId, quantity: 1 }];
       data.totalPrice = checkProduct.price;
       data.totalItems = 1;
-      const cart = await cartModel.create(data);
+      let cart = await cartModel.create(data);
       cart = cart.toObject()
       delete cart["__v"]
       return res.status(201).send({ status: true, data: cart });
