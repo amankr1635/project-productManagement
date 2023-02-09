@@ -22,7 +22,8 @@ const createOrder = async function (req, res) {
       return res
         .status(400)
         .send({ status: false, message: "enter a valid cart id" });
-    const checkCart = await cartModel.findOne({ _id: data.cartId });
+    let checkCart = await cartModel.findOne({ _id: data.cartId });
+
     if (!checkCart)
       return res.status(400).send({ status: false, message: "no cart found" });
     if (checkCart.totalItems == 0)
@@ -54,12 +55,14 @@ const createOrder = async function (req, res) {
       if (keys.includes("cancellable")) obj.cancellable = false;
     }
     let orderCreation = await orderModel.create(obj);
+    orderCreation = orderCreation.toObject()
+    delete orderCreation["__v"]
     await cartModel.findOneAndUpdate(
       { _id: data.cartId },
       { items: [], totalPrice: 0, totalItems: 0 }
     );
     return res
-      .status(201)
+      .status(200)
       .send({ status: true, message: "Success", data: orderCreation });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });

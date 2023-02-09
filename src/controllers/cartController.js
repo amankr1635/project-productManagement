@@ -41,6 +41,8 @@ const createCart = async function (req, res) {
       data.totalPrice = checkProduct.price;
       data.totalItems = 1;
       const cart = await cartModel.create(data);
+      cart = cart.toObject()
+      delete cart["__v"]
       return res.status(201).send({ status: true, data: cart });
     } else {
       if (!data.cartId)
@@ -68,7 +70,6 @@ const createCart = async function (req, res) {
           }
           obj.items = arr;
           obj.totalPrice = checkUserInCart.totalPrice + checkProduct.price;
-
           flag = true;
         }
       }
@@ -77,11 +78,13 @@ const createCart = async function (req, res) {
         obj.totalPrice = checkUserInCart.totalPrice + checkProduct.price;
         obj.totalItems = checkUserInCart.totalItems + 1;
       }
-      const updateCart = await cartModel.findOneAndUpdate(
+      let updateCart = await cartModel.findOneAndUpdate(
         { userId: req.params.userId },
         obj,
         { new: true }
       );
+      updateCart = updateCart.toObject()
+      delete updateCart["__v"] 
       return res
         .status(200)
         .send({ status: true, message: "Success", data: updateCart });

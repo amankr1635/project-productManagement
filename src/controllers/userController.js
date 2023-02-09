@@ -9,7 +9,6 @@ const {
   isValidNo,
   passwordVal,
   isValidImage,
-  isValidString,
   isValidAddress,
 } = require("../validations/validation");
 
@@ -193,11 +192,9 @@ const user = async function (req, res) {
     let hash = await bcrypt.hash(data.password, saltRounds);
     data.password = hash;
     let createUser = await userModel.create(data);
-    return res.status(201).send({
-      status: true,
-      message: "User created successfully",
-      data: createUser,
-    });
+    createUser = createUser.toObject()
+    delete createUser["__v"]
+    return res.status(201).send({status: true,message: "User created successfully",data: createUser,});
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }

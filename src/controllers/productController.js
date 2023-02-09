@@ -155,6 +155,8 @@ const product = async function (req, res) {
         .status(400)
         .send({ status: false, message: "title is already exist" });
     let createProduct = await productModel.create(data);
+    createProduct = createProduct.toObject()
+    delete createProduct["__v"]
     return res.status(201).send({
       status: true,
       message: "Product created successfully",
