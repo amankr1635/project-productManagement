@@ -507,7 +507,10 @@ const updatProduct = async function (req, res) {
 const deleteProduct = async function (req, res) {
   try {
     let params = req.params.productId;
-   
+    if (!mongoose.isValidObjectId(params))
+      return res
+        .status(400)
+        .send({ status: false, message: "please enter a valid productId" });
 
     let deletePro = await productModel.findOneAndUpdate(
       { _id: params, isDeleted: false },
