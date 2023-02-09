@@ -23,14 +23,14 @@ const createOrder = async function (req, res) {
         .status(400)
         .send({ status: false, message: "enter a valid cart id" });
     const checkCart = await cartModel.findOne({ _id: data.cartId });
-    /////////////////////////////////////
+    
     if (!checkCart)
       return res.status(400).send({ status: false, message: "no cart found" });
     if (checkCart.totalItems == 0)
       return res
         .status(400)
         .send({ status: false, message: "your cart is empty" });
-        ////////////////////////////////////////
+        
 
     let obj = {};
     obj.userId = req.params.userId;
