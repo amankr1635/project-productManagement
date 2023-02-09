@@ -22,7 +22,7 @@ const createOrder = async function (req, res) {
       return res
         .status(400)
         .send({ status: false, message: "enter a valid cart id" });
-    let checkCart = await cartModel.findOne({ _id: data.cartId });
+    const checkCart = await cartModel.findOne({ _id: data.cartId });
 
     if (!checkCart)
       return res.status(400).send({ status: false, message: "no cart found" });
